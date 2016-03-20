@@ -1,0 +1,49 @@
+<?php
+
+
+function field_based_login_form_alter(&$form, $form_state, $form_id) {
+  if ($form_id == 'user_login_block' || $form_id == 'user_login') {
+    //$form['name']['#title'] = 'sfds';
+    //array_unshift($form['#submit'],'field_based_login_form_submit');
+    //$form['#submit'][0] = 'field_based_login_form_submit';
+    $form['#validate'] = field_based_login_login_default_validators();
+  }
+//  echo '<pre>'; print_r($form['#submit']); die;
+
+}
+
+function field_based_login_form_submit($form, $form_state, $form_id){
+
+  global $user;
+  $user = user_load($form_state['uid']);
+  $form_state['redirect'] = 'user/' . $user->uid;
+
+  user_login_finalize($form_state);
+
+  //die('sd');
+  drupal_set_message('sfsaf');
+//  echo '<pre>'; print_r($form['#submit']); die;
+//  die();
+}
+
+function field_based_login_login_default_validators(){
+  //return array('field_based_login_login_name_validate','user_login_authenticate_validate', 'user_login_final_validate');
+  return array('field_based_login_login_name_validate','user_login_name_validate', 'user_login_authenticate_validate', 'user_login_final_validate');
+}
+
+function field_based_login_login_name_validate($form, &$form_state){
+
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'user')
+    ->fieldCondition('field_phone', 'value',$form_state['values']['name'], '=');
+  $results = $query->execute();
+
+  $uid = array_keys($results['user'])[0];
+
+  $name = db_query("SELECT name FROM {users} WHERE uid = :uid", array(':uid' => $uid))->fetchObject();
+
+
+  //$user = user_load($uid);
+  $form_state['values']['name'] = $name->name;
+  //form_set_error('name', t('xxxxxxxxx %name has not been activated or is blocked.', array('%name' => $form_state['values']['name'])));
+}
