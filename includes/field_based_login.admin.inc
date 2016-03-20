@@ -44,17 +44,29 @@ function _field_based_login_configuration($form, &$form_state){
 
 function _field_based_login_configuration_validate($form, &$form_state){
   // todo: validate selected field must be unique
-  if(_field_based_check_for_duplicates()){
-    form_set_error('field_based_login[field_based_test]', t('Selected field is not unique filed. There are duplicates found, Please contact administration or change different field.'));
+  // todo : field_validator module support
+  $field = $form_state['values']['field_based_login']['field'];
+  if($field){
+    if(_field_based_check_for_duplicates($field)){
+      form_set_error('field_based_login', t('Selected field is not unique filed. There are duplicates found, Please contact administration or change different field.'));
+    }
   }
 }
 
-function _field_based_check_for_duplicates(){
+function _field_based_check_for_duplicates($field){
 
-  //SELECT field_phone_value, COUNT(*) c FROM field_data_field_phone GROUP BY field_phone_value HAVING c > 1;
-  $duplicate_count = db_query("SELECT {field_phone_value}, COUNT(*) c FROM field_data_field_phone GROUP BY field_phone_value HAVING c > 1 limit 0,1")->fetchObject();
+  $field = field_info_field($field);
+  $storage_details = $field['storage']['details']['sql']['FIELD_LOAD_CURRENT'];
+  foreach($storage_details as $table=>$column){
+    $table_name = $table;
+    $table_column = $column['value'];
+  }
+
+  // todo : convert this query to proper drupal suggested format
+  $duplicate_count = db_query("SELECT {$table_column}, COUNT(*) c FROM $table_name GROUP BY $table_column HAVING c > 1 limit 0,1")->fetchObject();
+  // todo : exception handling
   if($duplicate_count){
-    return 0;
+    return true;
   }
   return false;
 }

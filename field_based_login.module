@@ -53,26 +53,51 @@ function field_based_login_login_default_validators(){
 /*
  * Custom validate function to check custom user field records.
  */
-function field_based_login_login_name_validate($form, &$form_state){
-  // todo : replace field_phone with configured unique field
-  $query = new EntityFieldQuery();
-  $query->entityCondition('entity_type', 'user')
-    ->fieldCondition('field_phone', 'value',$form_state['values']['name'], '=');
-  $results = $query->execute();
+function field_based_login_login_name_validate($form, &$form_state) {
 
-  if($results){
-    // Check for multiple records
-    if(count($results['user']) > 1){
-      form_set_error('name', t('Sorry, Please contact administration. There are multiple user records found with same input.'));
-      // todo : enter field information
-      watchdog('user', 'Login attempt failed for %user. with field', array('%user' => $form_state['values']['name']));
-    }else{
-      $uid = array_keys($results['user'])[0];
-      $name = db_query("SELECT name FROM {users} WHERE uid = :uid", array(':uid' => $uid))->fetchObject();
-      $form_state['values']['name'] = $name->name;
+  $field_based_login = variable_get('field_based_login', array());
+  // If configuration not yet set, then allow users to login by username
+  $allow_user_login_by_name = isset($field_based_login['allow_user_name']) ? $field_based_login['allow_user_name'] : 1;
+  $allow_user_login_by_email = $field_based_login['allow_user_email'];
+  $user_not_found = true;
+
+  if (!empty($field_based_login['field'])) {
+
+    $query = new EntityFieldQuery();
+    $query->entityCondition('entity_type', 'user')
+      ->fieldCondition($field_based_login['field'], 'value', $form_state['values']['name'], '=');
+    $results = $query->execute();
+
+    if ($results) {
+      $user_not_found = false;
+      // Check for multiple records
+      if (count($results['user']) > 1) {
+        form_set_error('name', t('Sorry, Please contact administration. There are multiple user records found with same input.'));
+        // todo : enter field information
+        watchdog('user', 'Login attempt failed for %user. with field', array('%user' => $form_state['values']['name']));
+      }
+      else {
+        $uid = array_keys($results['user'])[0];
+        $name = db_query("SELECT name FROM {users} WHERE uid = :uid", array(':uid' => $uid))->fetchObject();
+        $form_state['values']['name'] = $name->name;
+      }
     }
-  }else{
-    form_set_error('name', t('Sorry, unrecognized username or password. <a href="@password">Have you forgotten your password?</a>', array('@password' => url('user/password', array('query' => array('name' => $form_state['values']['name']))))));
-    watchdog('user', 'Login attempt failed for %user.', array('%user' => $form_state['values']['name']));
+    
+    $user_load_by_name = user_load_by_name($form_state['values']['name']);
+    if($user_load_by_name && $allow_user_login_by_name){
+      $user_not_found = false;
+    }
+    
+    $user_load_by_mail = user_load_by_mail($form_state['values']['name']);
+    if($user_load_by_mail && $allow_user_login_by_email ){
+      $user_not_found = false;
+      $form_state['values']['name'] = $user_load_by_mail->name;
+    }
+
+    if($user_not_found){
+      form_set_error('name', t('Sorry, unrecognized username or password. <a href="@password">Have you forgotten your password?</a>', array('@password' => url('user/password', array('query' => array('name' => $form_state['values']['name']))))));
+      watchdog('user', 'Login attempt failed for %user.', array('%user' => $form_state['values']['name']));
+    }
+
   }
 }
