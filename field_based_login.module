@@ -1,6 +1,39 @@
 <?php
 
 /**
+ * Implements hook_menu().
+ */
+function field_based_login_menu() {
+  $items['admin/config/people/field-based-login'] = array(
+    'title' => 'Field based login',
+    'description' => 'Configurations for Field based login',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_field_based_login_configuration'),
+    'access arguments' => array('administer field based login'),
+    'file' => 'includes/field_based_login.admin.inc',
+  );
+  $items['admin/config/people/field-based-login/default'] = array(
+    'title' => 'Field Based Login',
+    'description' => 'Configurations for Field Based Login',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 1,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function field_based_login_permission() {
+  return array(
+    'administer field based login' => array(
+      'title' => t('Administer Field Based Login'),
+      'description' => t('Perform administrative tasks on field based login module'),
+    ),
+  );
+}
+
+/**
  * Implement hook_form_alter().
  *
  */
