@@ -41,7 +41,7 @@ function field_based_login_form_alter(&$form, $form_state, $form_id) {
   if ($form_id == 'user_login_block' || $form_id == 'user_login') {
     $form['#validate'] = field_based_login_login_default_validators();
     $field_based_login = variable_get('field_based_login', array());
-    if(!empty($field_based_login['label'])){
+    if (!empty($field_based_login['label'])) {
       $form['name']['#title'] = $field_based_login['label'];
     }
   }
@@ -50,8 +50,13 @@ function field_based_login_form_alter(&$form, $form_state, $form_id) {
 /*
  * Callback function for user_login validator.
  */
-function field_based_login_login_default_validators(){
-  return array('field_based_login_login_name_validate','user_login_name_validate', 'user_login_authenticate_validate', 'user_login_final_validate');
+function field_based_login_login_default_validators() {
+  return array(
+    'field_based_login_login_name_validate',
+    'user_login_name_validate',
+    'user_login_authenticate_validate',
+    'user_login_final_validate'
+  );
 }
 
 /*
@@ -63,7 +68,7 @@ function field_based_login_login_name_validate($form, &$form_state) {
   // If configuration not yet set, then allow users to login by username
   $allow_user_login_by_name = isset($field_based_login['allow_user_name']) ? $field_based_login['allow_user_name'] : 1;
   $allow_user_login_by_email = $field_based_login['allow_user_email'];
-  $user_not_found = true;
+  $user_not_found = TRUE;
 
   if (!empty($field_based_login['field'])) {
 
@@ -73,7 +78,7 @@ function field_based_login_login_name_validate($form, &$form_state) {
     $results = $query->execute();
 
     if ($results) {
-      $user_not_found = false;
+      $user_not_found = FALSE;
       // Check for multiple records
       if (count($results['user']) > 1) {
         form_set_error('name', t('Sorry, Please contact administration. There are multiple user records found with same input.'));
@@ -86,19 +91,19 @@ function field_based_login_login_name_validate($form, &$form_state) {
         $form_state['values']['name'] = $name->name;
       }
     }
-    
+
     $user_load_by_name = user_load_by_name($form_state['values']['name']);
-    if($user_load_by_name && $allow_user_login_by_name){
-      $user_not_found = false;
+    if ($user_load_by_name && $allow_user_login_by_name) {
+      $user_not_found = FALSE;
     }
-    
+
     $user_load_by_mail = user_load_by_mail($form_state['values']['name']);
-    if($user_load_by_mail && $allow_user_login_by_email ){
-      $user_not_found = false;
+    if ($user_load_by_mail && $allow_user_login_by_email) {
+      $user_not_found = FALSE;
       $form_state['values']['name'] = $user_load_by_mail->name;
     }
 
-    if($user_not_found){
+    if ($user_not_found) {
       form_set_error('name', t('Sorry, unrecognized username or password. <a href="@password">Have you forgotten your password?</a>', array('@password' => url('user/password', array('query' => array('name' => $form_state['values']['name']))))));
       watchdog('user', 'Login attempt failed for %user.', array('%user' => $form_state['values']['name']));
     }
@@ -118,14 +123,14 @@ function field_based_login_field_attach_validate($entity_type, $entity, &$errors
     $user = user_load_by_name($user_name);
     foreach ($available_fields as $field_key => $field_info) {
 
-      if($field_based_login['field'] == $field_key){
+      if ($field_based_login['field'] == $field_key) {
 
         $field_value = $entity->$field_key;
         foreach ($field_value[LANGUAGE_NONE] as $index => $value) {
           // code for unique check
           // todo validate '$value['value']' value
           $duplicate = _field_based_login_field_unique_check($field_based_login['field'], $user->uid, $value['value']);
-          if($duplicate){
+          if ($duplicate) {
             form_set_error($field_key, t("Restricted to add this value which is already exists."));
           }
 
@@ -140,25 +145,26 @@ function field_based_login_field_attach_validate($entity_type, $entity, &$errors
 /*
  * Return true if field is duplicate
  */
-function _field_based_login_field_unique_check($field, $uid, $value){
+function _field_based_login_field_unique_check($field, $uid, $value) {
 
   $query = new EntityFieldQuery();
   $query->entityCondition('entity_type', 'user')
-    ->fieldCondition($field, 'value',$value, '=');
+    ->fieldCondition($field, 'value', $value, '=');
   $results = $query->execute();
 
-  if($results){
+  if ($results) {
     // if multiple records found then it is duplicate
-    if(count($results['user']) > 1){
-      return true;
-    }elseif(count($results['user']) == 1){
+    if (count($results['user']) > 1) {
+      return TRUE;
+    }
+    elseif (count($results['user']) == 1) {
       // if this data is not belongs to him then its duplicate
       $data_uid = reset(array_keys($results['user']));
-      if($data_uid != $uid){
-        return true;
+      if ($data_uid != $uid) {
+        return TRUE;
       }
     }
   }
 
-  return false;
+  return FALSE;
 }

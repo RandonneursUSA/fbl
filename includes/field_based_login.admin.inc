@@ -1,6 +1,6 @@
 <?php
 
-function _field_based_login_configuration($form, &$form_state){
+function _field_based_login_configuration($form, &$form_state) {
   $form['field_based_login'] = array(
     '#type' => 'fieldset',
     '#title' => t('Field based login Configurations'),
@@ -11,9 +11,9 @@ function _field_based_login_configuration($form, &$form_state){
   $field_based_login = variable_get('field_based_login', array());
 
   // todo : in feature profile 2 should work :)
-  $user_fields = field_info_instances('user','user');
+  $user_fields = field_info_instances('user', 'user');
   $fields = array();
-  foreach($user_fields as $field=>$values){
+  foreach ($user_fields as $field => $values) {
     $fields[$field] = $values['label'];
   }
 
@@ -52,22 +52,22 @@ function _field_based_login_configuration($form, &$form_state){
   return system_settings_form($form);
 }
 
-function _field_based_login_configuration_validate($form, &$form_state){
+function _field_based_login_configuration_validate($form, &$form_state) {
   // todo: validate selected field must be unique
   // todo : field_validator module support
   $field = $form_state['values']['field_based_login']['field'];
-  if($field){
-    if(_field_based_check_for_duplicates($field)){
+  if ($field) {
+    if (_field_based_check_for_duplicates($field)) {
       form_set_error('field_based_login', t('Selected field is not unique filed. There are duplicates found, Please contact administration or change different field.'));
     }
   }
 }
 
-function _field_based_check_for_duplicates($field){
+function _field_based_check_for_duplicates($field) {
 
   $field = field_info_field($field);
   $storage_details = $field['storage']['details']['sql']['FIELD_LOAD_CURRENT'];
-  foreach($storage_details as $table=>$column){
+  foreach ($storage_details as $table => $column) {
     $table_name = $table;
     $table_column = $column['value'];
   }
@@ -75,8 +75,8 @@ function _field_based_check_for_duplicates($field){
   // todo : convert this query to proper drupal suggested format
   $duplicate_count = db_query("SELECT {$table_column}, COUNT(*) c FROM $table_name GROUP BY $table_column HAVING c > 1 limit 0,1")->fetchObject();
   // todo : exception handling
-  if($duplicate_count){
-    return true;
+  if ($duplicate_count) {
+    return TRUE;
   }
-  return false;
+  return FALSE;
 }
