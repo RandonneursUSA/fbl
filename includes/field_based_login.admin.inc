@@ -29,7 +29,7 @@ function _field_based_login_configuration($form, &$form_state){
   $form['field_based_login']['allow_user_name'] = array(
     '#type' => 'checkbox',
     '#title' => check_plain(t('Allow login with username')),
-    '#default_value' => isset($field_based_login['allow_user_name']) ? $field_based_login['allow_user_name'] : '',
+    '#default_value' => isset($field_based_login['allow_user_name']) ? $field_based_login['allow_user_name'] : 1,
   );
 
   $form['field_based_login']['allow_user_email'] = array(
@@ -37,6 +37,16 @@ function _field_based_login_configuration($form, &$form_state){
     '#title' => check_plain(t('Allow login with E-mail')),
     '#default_value' => isset($field_based_login['allow_user_email']) ? $field_based_login['allow_user_email'] : '',
   );
+
+  $form['field_based_login']['label'] = array(
+    '#type' => 'textfield',
+    '#title' => t('User login form - User name field Label'),
+    '#default_value' => isset($field_based_login['label']) ? $field_based_login['label'] : '',
+    '#description' => t('Ex: Phone / E-mail'),
+    '#size' => 60,
+    '#maxlength' => 60,
+  );
+
   $form['#validate'][] = '_field_based_login_configuration_validate';
 
   return system_settings_form($form);

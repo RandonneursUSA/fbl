@@ -40,6 +40,10 @@ function field_based_login_permission() {
 function field_based_login_form_alter(&$form, $form_state, $form_id) {
   if ($form_id == 'user_login_block' || $form_id == 'user_login') {
     $form['#validate'] = field_based_login_login_default_validators();
+    $field_based_login = variable_get('field_based_login', array());
+    if(!empty($field_based_login['label'])){
+      $form['name']['#title'] = $field_based_login['label'];
+    }
   }
 }
 
@@ -100,4 +104,61 @@ function field_based_login_login_name_validate($form, &$form_state) {
     }
 
   }
+}
+
+/**
+ * Implements hook_field_attach_validate().
+ */
+function field_based_login_field_attach_validate($entity_type, $entity, &$errors) {
+
+  $field_based_login = variable_get('field_based_login', array());
+  if (!empty($field_based_login['field']) && $entity_type = 'user') {
+    $available_fields = field_info_instances('user', 'user');
+    $user_name = $entity->name;
+    $user = user_load_by_name($user_name);
+    foreach ($available_fields as $field_key => $field_info) {
+
+      if($field_based_login['field'] == $field_key){
+
+        $field_value = $entity->$field_key;
+        foreach ($field_value[LANGUAGE_NONE] as $index => $value) {
+          // code for unique check
+          // todo validate '$value['value']' value
+          $duplicate = _field_based_login_field_unique_check($field_based_login['field'], $user->uid, $value['value']);
+          if($duplicate){
+            form_set_error($field_key, t("Restricted to add this value which is already exists."));
+          }
+
+        }
+      }
+    }
+
+  }
+
+}
+
+/*
+ * Return true if field is duplicate
+ */
+function _field_based_login_field_unique_check($field, $uid, $value){
+
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'user')
+    ->fieldCondition($field, 'value',$value, '=');
+  $results = $query->execute();
+
+  if($results){
+    // if multiple records found then it is duplicate
+    if(count($results['user']) > 1){
+      return true;
+    }elseif(count($results['user']) == 1){
+      // if this data is not belongs to him then its duplicate
+      $data_uid = reset(array_keys($results['user']));
+      if($data_uid != $uid){
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
