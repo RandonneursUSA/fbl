@@ -1,6 +1,6 @@
 <?php
 
-function _field_based_login_configuration($form, &$form_state) {
+function _fbl_configuration($form, &$form_state) {
   $form['field_based_login'] = array(
     '#type' => 'fieldset',
     '#title' => t('Field based login Configurations'),
@@ -47,23 +47,23 @@ function _field_based_login_configuration($form, &$form_state) {
     '#maxlength' => 60,
   );
 
-  $form['#validate'][] = '_field_based_login_configuration_validate';
+  $form['#validate'][] = '_fbl_configuration_validate';
 
   return system_settings_form($form);
 }
 
-function _field_based_login_configuration_validate($form, &$form_state) {
+function _fbl_configuration_validate($form, &$form_state) {
   // todo: validate selected field must be unique
   // todo : field_validator module support
   $field = $form_state['values']['field_based_login']['field'];
   if ($field) {
-    if (_field_based_check_for_duplicates($field)) {
+    if (_fbl_check_for_duplicates($field)) {
       form_set_error('field_based_login', t('Selected field is not unique filed. There are duplicates found, Please contact administration or change different field.'));
     }
   }
 }
 
-function _field_based_check_for_duplicates($field) {
+function _fbl_check_for_duplicates($field) {
 
   $field = field_info_field($field);
   $storage_details = $field['storage']['details']['sql']['FIELD_LOAD_CURRENT'];

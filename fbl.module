@@ -3,16 +3,16 @@
 /**
  * Implements hook_menu().
  */
-function field_based_login_menu() {
-  $items['admin/config/people/field-based-login'] = array(
+function fbl_menu() {
+  $items['admin/config/people/fbl'] = array(
     'title' => 'Field based login',
     'description' => 'Configurations for Field based login',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('_field_based_login_configuration'),
+    'page arguments' => array('_fbl_configuration'),
     'access arguments' => array('administer field based login'),
-    'file' => 'includes/field_based_login.admin.inc',
+    'file' => 'includes/fbl.admin.inc',
   );
-  $items['admin/config/people/field-based-login/default'] = array(
+  $items['admin/config/people/fbl/default'] = array(
     'title' => 'Field Based Login',
     'description' => 'Configurations for Field Based Login',
     'type' => MENU_DEFAULT_LOCAL_TASK,
@@ -24,7 +24,7 @@ function field_based_login_menu() {
 /**
  * Implements hook_permission().
  */
-function field_based_login_permission() {
+function fbl_permission() {
   return array(
     'administer field based login' => array(
       'title' => t('Administer Field Based Login'),
@@ -37,9 +37,9 @@ function field_based_login_permission() {
  * Implement hook_form_alter().
  *
  */
-function field_based_login_form_alter(&$form, $form_state, $form_id) {
+function fbl_form_alter(&$form, $form_state, $form_id) {
   if ($form_id == 'user_login_block' || $form_id == 'user_login') {
-    $form['#validate'] = field_based_login_login_default_validators();
+    $form['#validate'] = fbl_login_default_validators();
     $field_based_login = variable_get('field_based_login', array());
     if (!empty($field_based_login['label'])) {
       $form['name']['#title'] = $field_based_login['label'];
@@ -50,9 +50,9 @@ function field_based_login_form_alter(&$form, $form_state, $form_id) {
 /*
  * Callback function for user_login validator.
  */
-function field_based_login_login_default_validators() {
+function fbl_login_default_validators() {
   return array(
-    'field_based_login_login_name_validate',
+    'fbl_login_name_validate',
     'user_login_name_validate',
     'user_login_authenticate_validate',
     'user_login_final_validate'
@@ -62,7 +62,7 @@ function field_based_login_login_default_validators() {
 /*
  * Custom validate function to check custom user field records.
  */
-function field_based_login_login_name_validate($form, &$form_state) {
+function fbl_login_name_validate($form, &$form_state) {
 
   $field_based_login = variable_get('field_based_login', array());
   // If configuration not yet set, then allow users to login by username
@@ -114,7 +114,7 @@ function field_based_login_login_name_validate($form, &$form_state) {
 /**
  * Implements hook_field_attach_validate().
  */
-function field_based_login_field_attach_validate($entity_type, $entity, &$errors) {
+function fbl_field_attach_validate($entity_type, $entity, &$errors) {
 
   $field_based_login = variable_get('field_based_login', array());
   if (!empty($field_based_login['field']) && $entity_type = 'user') {
@@ -129,7 +129,7 @@ function field_based_login_field_attach_validate($entity_type, $entity, &$errors
         foreach ($field_value[LANGUAGE_NONE] as $index => $value) {
           // code for unique check
           // todo validate '$value['value']' value
-          $duplicate = _field_based_login_field_unique_check($field_based_login['field'], $user->uid, $value['value']);
+          $duplicate = _fbl_field_unique_check($field_based_login['field'], $user->uid, $value['value']);
           if ($duplicate) {
             form_set_error($field_key, t("Restricted to add this value which is already exists."));
           }
@@ -145,7 +145,7 @@ function field_based_login_field_attach_validate($entity_type, $entity, &$errors
 /*
  * Return true if field is duplicate
  */
-function _field_based_login_field_unique_check($field, $uid, $value) {
+function _fbl_field_unique_check($field, $uid, $value) {
 
   $query = new EntityFieldQuery();
   $query->entityCondition('entity_type', 'user')
