@@ -1,0 +1,14 @@
+<?php
+
+/**
+ * @file
+ * Install, update, and uninstall functions for the fbl module.
+ */
+
+/**
+* Implements hook_uninstall().
+*/
+function fbl_uninstall() {
+  // Delete variables.
+  variable_del('field_based_login');
+}
