@@ -14,7 +14,8 @@ function _fbl_configuration($form, &$form_state) {
   $user_fields = field_info_instances('user', 'user');
   $fields = array();
   foreach ($user_fields as $field => $values) {
-    if($values['required']) {
+    $field_type = field_info_field($field)['type'];
+    if ($values['required'] && ($field_type == 'number_integer' || $field_type == 'text' )) {
       $fields[$field] = $values['label'];
     }
   }
