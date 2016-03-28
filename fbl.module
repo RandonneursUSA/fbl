@@ -1,6 +1,29 @@
 <?php
 
 /**
+ * @file
+ * Module file for the field based login module.
+ */
+
+/**
+ * Implements hook_help().
+ */
+function fbl_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#fbl':
+      $output = '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('This module extends drupal core user login feature, using this module admin is allows to configure user account field as loggable. like mobile number or serial number field & users can login with the same mobile number or serial number field. for more info visit <a href="@link">here</a>.', array('@link' => 'https://www.drupal.org/project/fbl')) . '</p>';
+      $output .= '<h3>' . t('Uses') . '</h3>';
+      $output .= '<dl>';
+      $output .= '<dt>' . t('Assigning user field to user login') . '</dt>';
+      $output .= '<dd>' . t("Go to <a href='@account_setting'>account settings page</a> and add a new field for the user account. Once the field has been added, please select the Unique field  in <a href='@fbl_setting'>Field based login Configurations
+</a>", array('@account_setting' => url('admin/config/people/accounts/fields'),'@fbl_setting' => url('admin/config/people/fbl'))).'</dd>';
+      $output .= '</dl>';
+      return $output;
+  }
+}
+
+/**
  * Implements hook_menu().
  */
 function fbl_menu() {
