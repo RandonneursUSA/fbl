@@ -71,11 +71,12 @@ function _fbl_check_for_duplicates($field) {
     $table_name = $table;
     $table_column = $column['value'];
   }
-
-  // todo : convert this query to proper drupal suggested format
-  $duplicate_count = db_query("SELECT {$table_column}, COUNT(*) c FROM $table_name GROUP BY $table_column HAVING c > 1 limit 0,1")->fetchObject();
+  //query to find the number of unique values of the login selected field
+  $query = db_select($table_name, 't');
+  $query->fields('t', array($table_column));
+  $duplicate_count = $query->countQuery()->execute()->fetchField();
   // todo : exception handling
-  if ($duplicate_count) {
+  if ($duplicate_count > 1) {
     return TRUE;
   }
   return FALSE;
