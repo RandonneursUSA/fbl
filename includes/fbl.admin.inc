@@ -14,7 +14,9 @@ function _fbl_configuration($form, &$form_state) {
   $user_fields = field_info_instances('user', 'user');
   $fields = array();
   foreach ($user_fields as $field => $values) {
-    $fields[$field] = $values['label'];
+    if($values['required']) {
+      $fields[$field] = $values['label'];
+    }
   }
 
   $form['field_based_login']['field'] = array(
