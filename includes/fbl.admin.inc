@@ -49,6 +49,16 @@ function _fbl_configuration($form, &$form_state) {
     '#maxlength' => 60,
   );
 
+  /*added description field for configuration */
+  $form['field_based_login']['field_desc'] = array(
+    '#type' => 'textfield',
+    '#title' => t('User login form - User name field Description'),
+    '#default_value' => isset($field_based_login['field_desc']) ? $field_based_login['field_desc'] : '',
+    '#description' => t('Ex: Provide description for custom login field'),
+    '#size' => 60,
+    '#maxlength' => 60,
+  );
+
   $form['#validate'][] = '_fbl_configuration_validate';
 
   return system_settings_form($form);
