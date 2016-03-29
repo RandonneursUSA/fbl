@@ -35,12 +35,6 @@ function fbl_menu() {
     'access arguments' => array('administer field based login'),
     'file' => 'includes/fbl.admin.inc',
   );
-  $items['admin/config/people/fbl/default'] = array(
-    'title' => 'Field Based Login',
-    'description' => 'Configurations for Field Based Login',
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => 1,
-  );
   return $items;
 }
 
