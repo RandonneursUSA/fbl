@@ -107,7 +107,10 @@ function fbl_login_name_validate($form, &$form_state) {
       }
       else {
         $uid = array_keys($results['user'])[0];
-        $name = db_query("SELECT name FROM {users} WHERE uid = :uid", array(':uid' => $uid))->fetchObject();
+        $query = db_select('users', 'u');
+        $query->fields('u', array('name'));
+        $query->condition('u.uid', $uid);
+        $name = $query->execute()->fetchObject();
         $form_state['values']['name'] = $name->name;
       }
     }

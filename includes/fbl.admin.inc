@@ -87,9 +87,15 @@ function _fbl_check_for_duplicates($field) {
   //query to find the number of unique values of the login selected field
   $query = db_select($table_name, 't');
   $query->fields('t', array($table_column));
-  $duplicate_count = $query->countQuery()->execute()->fetchField();
+  $query->groupBy('t.' . $table_column);
+  $query->condition('t.entity_type', 'user');
+  $query->condition('t.bundle', 'user');
+  $query->addExpression('COUNT(' . $table_column . ')', 'field_count');
+  $query->havingCondition('field_count', '1', '>');
+  $query->range(0, 1);
+  $duplicate_count = $query->execute()->fetchAll();
   // todo : exception handling
-  if ($duplicate_count > 1) {
+  if ($duplicate_count) {
     return TRUE;
   }
   return FALSE;
