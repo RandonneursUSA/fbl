@@ -62,7 +62,7 @@ function fbl_form_alter(&$form, $form_state, $form_id) {
       $form['name']['#title'] = $field_based_login['label'];
     }
     if ($form_id == 'user_login' && !empty($field_based_login['field_desc'])) {
-      $form['name']['#description'] = t("Enter your @site_name @unique_field_desc", array('@site_name' => variable_get('site_name'), '@unique_field_desc' => $field_based_login['field_desc']));
+      $form['name']['#description'] = t("@unique_field_desc", array('@unique_field_desc' => $field_based_login['field_desc']));
     }
   }
 }
