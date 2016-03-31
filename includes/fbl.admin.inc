@@ -15,7 +15,7 @@ function _fbl_configuration($form, &$form_state) {
   $fields = array();
   foreach ($user_fields as $field => $values) {
     $field_type = field_info_field($field)['type'];
-    if ($values['required'] && ($field_type == 'number_integer' || $field_type == 'text' )) {
+    if (($field_type == 'number_integer' || $field_type == 'text')) {
       $fields[$field] = $values['label'];
     }
   }
@@ -68,6 +68,19 @@ function _fbl_configuration($form, &$form_state) {
 function _fbl_configuration_validate($form, &$form_state) {
   // todo: validate selected field must be unique
   // todo : field_validator module support
+  $field_name = $form_state['values']['field_based_login']['field'];
+  $field_type = field_info_instance('user', $field_name, 'user');
+  $user_count = _fbl_user_count();
+  $field_data_count = _fbl_field_data_count($field_type['field_name']);
+  if ($field_type['required'] == FALSE) {
+    drupal_set_message(t('Selected field is not mandatory.'), 'warning');
+  }
+  elseif ($field_type['settings']['user_register_form'] == FALSE) {
+    drupal_set_message(t('Selected field is not visible to user in the Registration form.'), 'warning');
+  }
+  if ($user_count > $field_data_count) {
+    drupal_set_message(t('Selected field is not having data for some of the user'), 'warning');
+  }
   $field = $form_state['values']['field_based_login']['field'];
   if ($field) {
     if (_fbl_check_for_duplicates($field)) {
@@ -99,4 +112,35 @@ function _fbl_check_for_duplicates($field) {
     return TRUE;
   }
   return FALSE;
+}
+
+/**
+ * Returns number of users reigstered in the site
+ */
+function _fbl_user_count() {
+  $query = db_select('users', 'u');
+  $query->fields('u', array('uid'));
+  $query->condition('u.uid', '0', '!=');
+  $user_count = $query->countQuery()->execute()->fetchField();
+  return $user_count;
+}
+
+/**
+ * @param string $field_name
+ * @return integer
+ * Returns how many fields having value
+ */
+function _fbl_field_data_count($field_name) {
+  $field = field_info_field($field_name);
+  $storage_details = $field['storage']['details']['sql']['FIELD_LOAD_CURRENT'];
+  foreach ($storage_details as $table => $column) {
+    $table_name = $table;
+    $table_column = $column['value'];
+  }
+  $query = db_select($table_name, 'field_value');
+  $query->fields('field_value', array($table_column));
+  $query->condition('field_value.entity_type', 'user');
+  $query->condition('field_value.bundle', 'user');
+  $field_data_count = $query->countQuery()->execute()->fetchField();
+  return $field_data_count;
 }
