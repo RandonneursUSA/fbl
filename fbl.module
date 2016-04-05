@@ -16,8 +16,11 @@ function fbl_help($path, $arg) {
       $output .= '<h3>' . t('Uses') . '</h3>';
       $output .= '<dl>';
       $output .= '<dt>' . t('Assigning user field to user login') . '</dt>';
-      $output .= '<dd>' . t("Go to <a href='@account_setting'>account settings page</a> and add a new field for the user account. Once the field has been added, please select the Unique field  in <a href='@fbl_setting'>Field based login Configurations
-</a>", array('@account_setting' => url('admin/config/people/accounts/fields'),'@fbl_setting' => url('admin/config/people/fbl'))).'</dd>';
+      // @FIXME
+// url() expects a route name or an external URI.
+// $output .= '<dd>' . t("Go to <a href='@account_setting'>account settings page</a> and add a new field for the user account. Once the field has been added, please select the Unique field  in <a href='@fbl_setting'>Field based login Configurations
+</a>", array('@account_setting' => \Drupal\Core\Url::fromRoute('entity.user.field_ui_fields'),'@fbl_setting' => url('admin/config/people/fbl'))).'</dd>';
+
       $output .= '</dl>';
       return $output;
   }
@@ -54,10 +57,15 @@ function fbl_permission() {
  * Implement hook_form_alter().
  *
  */
-function fbl_form_alter(&$form, $form_state, $form_id) {
+function fbl_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
   if ($form_id == 'user_login_block' || $form_id == 'user_login') {
     $form['#validate'] = fbl_login_default_validators();
-    $field_based_login = variable_get('field_based_login', array());
+    // @FIXME
+// // @FIXME
+// // This looks like another module's variable. You'll need to rewrite this call
+// // to ensure that it uses the correct configuration object.
+// $field_based_login = variable_get('field_based_login', array());
+
     if (!empty($field_based_login['label'])) {
       $form['name']['#title'] = $field_based_login['label'];
     }
@@ -84,7 +92,12 @@ function fbl_login_default_validators() {
  */
 function fbl_login_name_validate($form, &$form_state) {
 
-  $field_based_login = variable_get('field_based_login', array());
+  // @FIXME
+// // @FIXME
+// // This looks like another module's variable. You'll need to rewrite this call
+// // to ensure that it uses the correct configuration object.
+// $field_based_login = variable_get('field_based_login', array());
+
   // If configuration not yet set, then allow users to login by username
   $allow_user_login_by_name = isset($field_based_login['allow_user_name']) ? $field_based_login['allow_user_name'] : 1;
   $allow_user_login_by_email = $field_based_login['allow_user_email'];
@@ -103,7 +116,7 @@ function fbl_login_name_validate($form, &$form_state) {
       if (count($results['user']) > 1) {
         form_set_error('name', t('Sorry, Please contact administration. There are multiple user records found with same input.'));
         // todo : enter field information
-        watchdog('user', 'Login attempt failed for %user. with field', array('%user' => $form_state['values']['name']));
+        \Drupal::logger('user')->notice('Login attempt failed for %user. with field', array('%user' => $form_state['values']['name']));
       }
       else {
         $uid = array_keys($results['user'])[0];
@@ -127,8 +140,8 @@ function fbl_login_name_validate($form, &$form_state) {
     }
 
     if ($user_not_found) {
-      form_set_error('name', t('Sorry, unrecognized username or password. <a href="@password">Have you forgotten your password?</a>', array('@password' => url('user/password', array('query' => array('name' => $form_state['values']['name']))))));
-      watchdog('user', 'Login attempt failed for %user.', array('%user' => $form_state['values']['name']));
+      form_set_error('name', t('Sorry, unrecognized username or password. <a href="@password">Have you forgotten your password?</a>', array('@password' => \Drupal\Core\Url::fromRoute('user.pass'))));
+      \Drupal::logger('user')->notice('Login attempt failed for %user.', array('%user' => $form_state['values']['name']));
     }
 
   }
@@ -139,7 +152,12 @@ function fbl_login_name_validate($form, &$form_state) {
  */
 function fbl_field_attach_validate($entity_type, $entity, &$errors) {
 
-  $field_based_login = variable_get('field_based_login', array());
+  // @FIXME
+// // @FIXME
+// // This looks like another module's variable. You'll need to rewrite this call
+// // to ensure that it uses the correct configuration object.
+// $field_based_login = variable_get('field_based_login', array());
+
   if (!empty($field_based_login['field']) && $entity_type = 'user') {
     $available_fields = field_info_instances('user', 'user');
     $user_name = $entity->name;
@@ -149,7 +167,7 @@ function fbl_field_attach_validate($entity_type, $entity, &$errors) {
       if ($field_based_login['field'] == $field_key) {
 
         $field_value = $entity->$field_key;
-        foreach ($field_value[LANGUAGE_NONE] as $index => $value) {
+        foreach ($field_value[\Drupal\Core\Language\Language::LANGCODE_NOT_SPECIFIED] as $index => $value) {
           // code for unique check
           // todo validate '$value['value']' value
           $duplicate = _fbl_field_unique_check($field_based_login['field'], $user->uid, $value['value']);

@@ -8,7 +8,12 @@ function _fbl_configuration($form, &$form_state) {
     '#collapsible' => FALSE,
     '#tree' => TRUE,
   );
-  $field_based_login = variable_get('field_based_login', array());
+  // @FIXME
+// // @FIXME
+// // This looks like another module's variable. You'll need to rewrite this call
+// // to ensure that it uses the correct configuration object.
+// $field_based_login = variable_get('field_based_login', array());
+
 
   // todo : in feature profile 2 should work :)
   $user_fields = field_info_instances('user', 'user');
@@ -31,13 +36,13 @@ function _fbl_configuration($form, &$form_state) {
 
   $form['field_based_login']['allow_user_name'] = array(
     '#type' => 'checkbox',
-    '#title' => check_plain(t('Allow login with username')),
+    '#title' => \Drupal\Component\Utility\SafeMarkup::checkPlain(t('Allow login with username')),
     '#default_value' => isset($field_based_login['allow_user_name']) ? $field_based_login['allow_user_name'] : 1,
   );
 
   $form['field_based_login']['allow_user_email'] = array(
     '#type' => 'checkbox',
-    '#title' => check_plain(t('Allow login with E-mail')),
+    '#title' => \Drupal\Component\Utility\SafeMarkup::checkPlain(t('Allow login with E-mail')),
     '#default_value' => isset($field_based_login['allow_user_email']) ? $field_based_login['allow_user_email'] : '',
   );
 

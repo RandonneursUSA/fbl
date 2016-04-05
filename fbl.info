@@ -1,5 +1,0 @@
-name = Field Based Login
-description = "Allows users login with different fields."
-core = 7.x
-
-configure = admin/config/people/fbl

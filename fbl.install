@@ -10,5 +10,10 @@
 */
 function fbl_uninstall() {
   // Delete variables.
-  variable_del('field_based_login');
+  // @FIXME
+// // @FIXME
+// // This looks like another module's variable. You'll need to rewrite this call
+// // to ensure that it uses the correct configuration object.
+// variable_del('field_based_login');
+
 }
