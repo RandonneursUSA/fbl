@@ -18,7 +18,7 @@ function fbl_help($path, $arg) {
       $output .= '<dt>' . t('Assigning user field to user login') . '</dt>';
       // @FIXME
 // url() expects a route name or an external URI.
-// $output .= '<dd>' . t("Go to <a href='@account_setting'>account settings page</a> and add a new field for the user account. Once the field has been added, please select the Unique field  in <a href='@fbl_setting'>Field based login Configurations
+ $output .= '<dd>' . t("Go to <a href='@account_setting'>account settings page</a> and add a new field for the user account. Once the field has been added, please select the Unique field  in <a href='@fbl_setting'>Field based login Configurations
 </a>", array('@account_setting' => \Drupal\Core\Url::fromRoute('entity.user.field_ui_fields'),'@fbl_setting' => url('admin/config/people/fbl'))).'</dd>';
 
       $output .= '</dl>';
