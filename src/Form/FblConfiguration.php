@@ -97,7 +97,20 @@ class FblConfiguration extends ConfigFormBase {
   }
 
   public function validateForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
-    
+    $field_name = $form_state->getValue(['field_based_login', 'field']);
+    $entity_type_id = 'user';
+    $bundle = 'user';
+    $bundleFields = array();
+    foreach (\Drupal::entityManager()->getFieldDefinitions($entity_type_id, $bundle) as $field_name_value => $field_definition) {
+      if (!empty($field_definition->getTargetBundle())) {
+        if ($field_name_value == $field_name) {
+          $is_required = $field_definition->isRequired();
+        }
+      }
+    }
+    if ($is_required == '') {
+      drupal_set_message(t('Selected field is not mandatory.'), 'warning');
+    }
   }
 
   /**
