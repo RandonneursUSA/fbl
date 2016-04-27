@@ -40,6 +40,15 @@ class FblConfiguration extends ConfigFormBase {
     ];
 
     $bundleFields[] = '';
+     // todo : in feature profile 2 should work :
+    $entity_type_id = 'user';
+    $bundle = 'user';
+    $bundleFields = array();
+    foreach (\Drupal::entityManager()->getFieldDefinitions($entity_type_id, $bundle) as $field_name => $field_definition) {
+      if (!empty($field_definition->getTargetBundle())) {
+          $bundleFields[$field_name] = $field_definition->getLabel();
+      }
+    }
     $form['field_based_login']['field'] = [
       '#type' => 'select',
       '#title' => t('Unique field'),
