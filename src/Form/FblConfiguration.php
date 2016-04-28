@@ -97,7 +97,9 @@ class FblConfiguration extends ConfigFormBase {
   public function validateForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
     $field_name = $form_state->getValue(['field_based_login', 'field']);
     $user_count = _fbl_user_count();
-    $field_data_count = _fbl_field_data_count($field_name);
+    if (isset($field_name) && !empty($field_name)) {
+      $field_data_count = _fbl_field_data_count($field_name);
+    }
     $entity_type_id = 'user';
     $bundle = 'user';
     foreach (\Drupal::entityManager()->getFieldDefinitions($entity_type_id, $bundle) as $field_name_value => $field_definition) {
@@ -107,11 +109,13 @@ class FblConfiguration extends ConfigFormBase {
         }
       }
     }
-    if ($is_required == '') {
-      drupal_set_message(t('Selected field is not mandatory.'), 'warning');
-    }
-    if ($user_count > $field_data_count) {
-      drupal_set_message(t('Selected field is not having data for some of the user'), 'warning');
+    if (!empty($field_name)) {
+      if ($is_required == '') {
+        drupal_set_message(t('Selected field is not mandatory.'), 'warning');
+      }
+      if ($user_count > $field_data_count) {
+        drupal_set_message(t('Selected field is not having data for some of the user'), 'warning');
+      }
     }
   }
 
