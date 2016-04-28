@@ -38,8 +38,6 @@ class FblConfiguration extends ConfigFormBase {
       '#collapsible' => FALSE,
       '#tree' => TRUE,
     ];
-
-    $bundleFields[] = '';
     // todo : in feature profile 2 should work :
     $entity_type_id = 'user';
     $bundle = 'user';
@@ -98,9 +96,10 @@ class FblConfiguration extends ConfigFormBase {
 
   public function validateForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
     $field_name = $form_state->getValue(['field_based_login', 'field']);
+    $user_count = _fbl_user_count();
+    $field_data_count = _fbl_field_data_count($field_name);
     $entity_type_id = 'user';
     $bundle = 'user';
-    $bundleFields = array();
     foreach (\Drupal::entityManager()->getFieldDefinitions($entity_type_id, $bundle) as $field_name_value => $field_definition) {
       if (!empty($field_definition->getTargetBundle())) {
         if ($field_name_value == $field_name) {
@@ -110,6 +109,9 @@ class FblConfiguration extends ConfigFormBase {
     }
     if ($is_required == '') {
       drupal_set_message(t('Selected field is not mandatory.'), 'warning');
+    }
+    if ($user_count > $field_data_count) {
+      drupal_set_message(t('Selected field is not having data for some of the user'), 'warning');
     }
   }
 
@@ -131,4 +133,31 @@ class FblConfiguration extends ConfigFormBase {
     parent::submitForm($form, $form_state);
   }
 
+}
+
+/**
+ * Returns number of user
+ * @return string
+ */
+function _fbl_user_count() {
+  $query = db_select('users', 'u');
+  $query->fields('u', array('uid'));
+  $query->condition('u.uid', '0', '!=');
+  $user_count = $query->countQuery()->execute()->fetchField();
+  return $user_count;
+}
+
+/**
+ * @param string $field_name
+ * @return integer
+ * Returns how many fields having value
+ */
+function _fbl_field_data_count($field_name) {
+  $table_name = 'user__' . $field_name;
+  $table_column = $field_name . '_value';
+  $query = db_select($table_name, 'field_value');
+  $query->fields('field_value', array($table_column));
+  $query->condition('field_value.bundle', 'user');
+  $field_data_count = $query->countQuery()->execute()->fetchField();
+  return $field_data_count;
 }
