@@ -116,6 +116,9 @@ class FblConfiguration extends ConfigFormBase {
       if ($user_count > $field_data_count) {
         drupal_set_message(t('Selected field is not having data for some of the user'), 'warning');
       }
+      if (_fbl_check_for_duplicates($field_name)) {
+        $form_state->setErrorByName('field_based_login][field', t('Selected field is not unique. There are duplicates found, Please select other field.'));
+      }
     }
   }
 
@@ -137,6 +140,29 @@ class FblConfiguration extends ConfigFormBase {
     parent::submitForm($form, $form_state);
   }
 
+}
+
+function _fbl_check_for_duplicates($field_name) {
+  $table_name = 'user__' . $field_name;
+  $table_column = $field_name . '_value';
+  //query to find the number of unique values of the login selected field
+
+  $query = db_select($table_name, 't');
+  $query->fields('t', array($table_column));
+  $query->groupBy('t.' . $table_column . '');
+  $query->condition('t.bundle', 'user');
+  $query->addExpression('COUNT(' . $table_column . ')', 'field_count');
+  //$query->havingCondition('t.' . $table_column, '1', '>');
+  $query->range(0, 1);
+  $duplicate_count = $query->execute()->fetchAll();
+  foreach ($duplicate_count as $count) {
+    $count = $count->field_count;
+  }
+  // todo : exception handling
+  if ($count > 1) {
+    return TRUE;
+  }
+  return FALSE;
 }
 
 /**
