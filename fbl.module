@@ -4,6 +4,7 @@
  * @file
  * Module file for the field based login module.
  */
+use Drupal\Core\Form\FormStateInterface;
 
 /**
  * Implements hook_help().
@@ -57,7 +58,7 @@ function fbl_permission() {
  * Implement hook_form_alter().
  *
  */
-function fbl_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
+function fbl_form_alter(&$form, FormStateInterface $form_state, $form_id) {
   if ($form_id == 'user_login_form' || $form_id == 'user_form') {
     $fbl_config = \Drupal::config('fbl.settings');
     $fbl_value = $fbl_config->get('field_based_login');
@@ -104,6 +105,17 @@ function fbl_login_name_validate($form, FormStateInterface &$form_state) {
         $name = $query->execute()->fetchObject();
         $form_state->setValue('name', $name->name);
       }
+    }
+
+    $user_load_by_name = user_load_by_name($form_state->getValue('name'));
+    if ($user_load_by_name && $allow_user_login_by_name) {
+      $user_not_found = FALSE;
+    }
+
+    $user_load_by_mail = user_load_by_mail($form_state->getValue('name'));
+    if ($user_load_by_mail && $allow_user_login_by_email) {
+      $user_not_found = FALSE;
+      $form_state->setValue('name', $user_load_by_mail->getUsername());
     }
 
     if ($user_not_found) {
