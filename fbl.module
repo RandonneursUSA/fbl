@@ -58,19 +58,20 @@ function fbl_permission() {
  *
  */
 function fbl_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
-  if ($form_id == 'user_login_block' || $form_id == 'user_login') {
-    $form['#validate'] = fbl_login_default_validators();
+  if ($form_id == 'user_login_form' || $form_id == 'user_form') {
+
     // @FIXME
 // // @FIXME
 // // This looks like another module's variable. You'll need to rewrite this call
 // // to ensure that it uses the correct configuration object.
 // $field_based_login = variable_get('field_based_login', array());
-
-    if (!empty($field_based_login['label'])) {
-      $form['name']['#title'] = $field_based_login['label'];
+    $fbl_config = \Drupal::config('fbl.settings');
+    $fbl_value = $fbl_config->get('field_based_login');
+    if (!empty($fbl_value['label'])) {
+      $form['name']['#title'] = $fbl_value['label'];
     }
-    if ($form_id == 'user_login' && !empty($field_based_login['field_desc'])) {
-      $form['name']['#description'] = t("@unique_field_desc", array('@unique_field_desc' => $field_based_login['field_desc']));
+    if ($form_id == 'user_login_form' && !empty($fbl_value['field_desc'])) {
+      $form['name']['#description'] = t("@unique_field_desc", array('@unique_field_desc' => $fbl_value['field_desc']));
     }
   }
 }
