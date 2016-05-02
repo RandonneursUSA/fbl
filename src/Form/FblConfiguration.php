@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\fbl\Form\FblConfiguration.
- */
-
 namespace Drupal\fbl\Form;
 
 use Drupal\Core\Form\ConfigFormBase;
