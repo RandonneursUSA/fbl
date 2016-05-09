@@ -98,6 +98,7 @@ function fbl_login_name_validate($form, FormStateInterface &$form_state) {
   $allow_user_login_by_email = $fbl_value['allow_user_email'];
   $user_not_found = TRUE;
   $login_input = $form_state->getValue('name');
+  if (!empty($fbl_value['field']) || $allow_user_login_by_email) {
   if (!empty($fbl_value['field'])) {
     $query = \Drupal::entityQuery('user');
     $query->condition($fbl_value['field'] . '.value', $login_input);
@@ -120,13 +121,13 @@ function fbl_login_name_validate($form, FormStateInterface &$form_state) {
         $form_state->setValue('name', $name->name);
       }
     }
-
-    $user_load_by_name = user_load_by_name($form_state->getValue('name'));
+    }
+    $user_load_by_name = user_load_by_name($login_input);
     if ($user_load_by_name && $allow_user_login_by_name) {
       $user_not_found = FALSE;
     }
 
-    $user_load_by_mail = user_load_by_mail($form_state->getValue('name'));
+    $user_load_by_mail = user_load_by_mail($login_input);
     if ($user_load_by_mail && $allow_user_login_by_email) {
       $user_not_found = FALSE;
       $form_state->setValue('name', $user_load_by_mail->getUsername());
@@ -134,7 +135,7 @@ function fbl_login_name_validate($form, FormStateInterface &$form_state) {
 
     if ($user_not_found) {
       $form_state->setErrorByName('name', t('Sorry, unrecognized username or password. <a href="@password">Have you forgotten your password?</a>', array('@password' => \Drupal\Core\Url::fromRoute('user.pass'))));
-      \Drupal::logger('user')->notice('Login attempt failed for %user.', array('%user' => $form_state->getValue('name')));
+      \Drupal::logger('user')->notice('Login attempt failed for %user.', array('%user' => $login_input));
     }
   }
 }
@@ -166,18 +167,16 @@ function fbl_field_attach_validate($entity_type, $entity, &$errors) {
           if ($duplicate) {
             form_set_error($field_key, t("Restricted to add this value which is already exists."));
           }
-
         }
       }
     }
-
   }
-
 }
 
 /*
  * Return true if field is duplicate
  */
+
 function _fbl_field_unique_check($field, $uid, $value) {
 
   $query = new EntityFieldQuery();
