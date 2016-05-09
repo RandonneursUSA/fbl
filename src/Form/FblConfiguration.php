@@ -91,6 +91,11 @@ class FblConfiguration extends ConfigFormBase {
 
   public function validateForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
     $field_name = $form_state->getValue(['field_based_login', 'field']);
+    $allow_user_login_by_name = $form_state->getValue(['field_based_login', 'allow_user_name']);
+    $allow_user_login_by_email = $form_state->getValue(['field_based_login', 'allow_user_email']);
+    if (isset($field_name) && empty($field_name) && ($allow_user_login_by_name == 0) && ($allow_user_login_by_name == 0)) {
+      $form_state->setErrorByName('field_based_login][field', t('Please select any one of the option to login'));
+    }
     $user_count = _fbl_user_count();
     if (isset($field_name) && !empty($field_name)) {
       $field_data_count = _fbl_field_data_count($field_name);
