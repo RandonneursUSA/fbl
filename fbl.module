@@ -5,6 +5,7 @@
  * Module file for the field based login module.
  */
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Routing\RouteMatchInterface;
 
 /**
  * Implements hook_help()
