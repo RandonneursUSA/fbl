@@ -26,33 +26,6 @@ function fbl_help($route_name, RouteMatchInterface $route_match) {
 }
 
 /**
- * Implements hook_menu().
- */
-function fbl_menu() {
-  $items['admin/config/people/fbl'] = array(
-    'title' => 'Field based login',
-    'description' => 'Configurations for Field based login',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('_fbl_configuration'),
-    'access arguments' => array('administer field based login'),
-    'file' => 'includes/fbl.admin.inc',
-  );
-  return $items;
-}
-
-/**
- * Implements hook_permission().
- */
-function fbl_permission() {
-  return array(
-    'administer field based login' => array(
-      'title' => t('Administer Field Based Login'),
-      'description' => t('Perform administrative tasks on field based login module'),
-    ),
-  );
-}
-
-/**
  * Implement hook_form_alter().
  *
  */
@@ -140,65 +113,4 @@ function fbl_login_name_validate($form, FormStateInterface &$form_state) {
       \Drupal::logger('user')->notice('Login attempt failed for %user.', array('%user' => $login_input));
     }
   }
-}
-
-/**
- * Implements hook_field_attach_validate().
- */
-function fbl_field_attach_validate($entity_type, $entity, &$errors) {
-
-  // @FIXME
-// // @FIXME
-// // This looks like another module's variable. You'll need to rewrite this call
-// // to ensure that it uses the correct configuration object.
-// $field_based_login = variable_get('field_based_login', array());
-
-  if (!empty($field_based_login['field']) && $entity_type = 'user') {
-    $available_fields = field_info_instances('user', 'user');
-    $user_name = $entity->name;
-    $user = user_load_by_name($user_name);
-    foreach ($available_fields as $field_key => $field_info) {
-
-      if ($field_based_login['field'] == $field_key) {
-
-        $field_value = $entity->$field_key;
-        foreach ($field_value[\Drupal\Core\Language\Language::LANGCODE_NOT_SPECIFIED] as $index => $value) {
-          // code for unique check
-          // todo validate '$value['value']' value
-          $duplicate = _fbl_field_unique_check($field_based_login['field'], $user->uid, $value['value']);
-          if ($duplicate) {
-            form_set_error($field_key, t("Restricted to add this value which is already exists."));
-          }
-        }
-      }
-    }
-  }
-}
-
-/*
- * Return true if field is duplicate
- */
-
-function _fbl_field_unique_check($field, $uid, $value) {
-
-  $query = new EntityFieldQuery();
-  $query->entityCondition('entity_type', 'user')
-      ->fieldCondition($field, 'value', $value, '=');
-  $results = $query->execute();
-
-  if ($results) {
-    // if multiple records found then it is duplicate
-    if (count($results['user']) > 1) {
-      return TRUE;
-    }
-    elseif (count($results['user']) == 1) {
-      // if this data is not belongs to him then its duplicate
-      $data_uid = reset(array_keys($results['user']));
-      if ($data_uid != $uid) {
-        return TRUE;
-      }
-    }
-  }
-
-  return FALSE;
 }
