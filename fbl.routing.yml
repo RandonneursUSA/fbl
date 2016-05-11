@@ -4,4 +4,4 @@ fbl.configuration:
     _title: 'Field based login'
     _form: \Drupal\fbl\Form\FblConfiguration
   requirements:
-    _permission: 'administer field based login'
+    _permission: 'administer fbl'
