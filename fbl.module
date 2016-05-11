@@ -30,7 +30,7 @@ function fbl_help($route_name, RouteMatchInterface $route_match) {
  *
  */
 function fbl_form_alter(&$form, FormStateInterface $form_state, $form_id) {
-  if ($form_id == 'user_login_form' || $form_id == 'user_form') {
+  if ($form_id == 'user_login_form') {
     $fbl_config = \Drupal::config('fbl.settings');
     $fbl_value = $fbl_config->get('field_based_login');
     array_unshift($form['#validate'], 'fbl_login_name_validate');
