@@ -5,7 +5,6 @@ namespace Drupal\fbl\Form;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
-use Drupal\field\Entity\FieldStorageConfig;
 
 class FblConfiguration extends ConfigFormBase {
 
@@ -23,7 +22,10 @@ class FblConfiguration extends ConfigFormBase {
     return ['fbl.settings'];
   }
 
-  public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state) {
+  /**
+   * {@inheritdoc}
+   */
+  public function buildForm(array $form, FormStateInterface $form_state) {
     //Getting the configuration value
     $default_value_config = $this->config('fbl.settings');
     $default_value = $default_value_config->get('field_based_login');
@@ -74,7 +76,7 @@ class FblConfiguration extends ConfigFormBase {
       '#maxlength' => 60,
     ];
 
-    /* added description field for configuration */
+    // added description field for configuration.
     $form['field_based_login']['field_desc'] = [
       '#type' => 'textfield',
       '#title' => t('User login form - User name field Description'),
@@ -89,10 +91,13 @@ class FblConfiguration extends ConfigFormBase {
     return parent::buildForm($form, $form_state);
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function validateForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
     $field_name = $form_state->getValue(['field_based_login', 'field']);
     $allow_user_login_by_name = $form_state->getValue(['field_based_login', 'allow_user_name']);
-    $allow_user_login_by_email = $form_state->getValue(['field_based_login', 'allow_user_email']);
+    //$allow_user_login_by_email = $form_state->getValue(['field_based_login', 'allow_user_email']);
     if (isset($field_name) && empty($field_name) && ($allow_user_login_by_name == 0) && ($allow_user_login_by_name == 0)) {
       $form_state->setErrorByName('field_based_login][field', t('Please select any one of the option to login'));
     }
@@ -142,6 +147,12 @@ class FblConfiguration extends ConfigFormBase {
 
 }
 
+/*
+ * Helper function to check duplicate records of user data.
+ *
+ * @param field_name
+ *  Machine name of the user account field.
+ */
 function _fbl_check_for_duplicates($field_name) {
   $table_name = 'user__' . $field_name;
   $table_column = $field_name . '_value';
@@ -158,7 +169,7 @@ function _fbl_check_for_duplicates($field_name) {
   foreach ($duplicate_count as $count) {
     $count = $count->field_count;
   }
-  // todo : exception handling
+  // todo : exception handling  ??
   if ($count > 1) {
     return TRUE;
   }
@@ -179,8 +190,9 @@ function _fbl_user_count() {
 
 /**
  * @param string $field_name
+ *
  * @return integer
- * Returns how many fields having value
+ *  Returns how many fields having value
  */
 function _fbl_field_data_count($field_name) {
   $table_name = 'user__' . $field_name;

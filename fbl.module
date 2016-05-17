@@ -27,10 +27,11 @@ function fbl_help($route_name, RouteMatchInterface $route_match) {
 
 /**
  * Implement hook_form_alter().
- *
  */
 function fbl_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+
   if ($form_id == 'user_login_form') {
+    // Load fbl configurations.
     $fbl_config = \Drupal::config('fbl.settings');
     $fbl_value = $fbl_config->get('field_based_login');
     array_unshift($form['#validate'], 'fbl_login_name_validate');
@@ -41,12 +42,18 @@ function fbl_form_alter(&$form, FormStateInterface $form_state, $form_id) {
       $form['name']['#description'] = t("@unique_field_desc", array('@unique_field_desc' => $fbl_value['field_desc']));
     }
   }
+  // Set fbl validator on top of other register validators.
   if ($form_id == 'user_form' || $form_id == 'user_register_form') {
     $form['#validate'][] = 'fbl_user_register_validate';
   }
+
 }
 
+/*
+ * Implementation of fbl_user_register_validate().
+ */
 function fbl_user_register_validate($form, FormStateInterface &$form_state) {
+  // Load fbl configurations.
   $fbl_config = \Drupal::config('fbl.settings');
   $fbl_value = $fbl_config->get('field_based_login');
   $field_name = $fbl_value['field'];
@@ -64,8 +71,8 @@ function fbl_user_register_validate($form, FormStateInterface &$form_state) {
 /*
  * Custom validate function to check custom user field records.
  */
-
 function fbl_login_name_validate($form, FormStateInterface &$form_state) {
+  // Load fbl configurations.
   $fbl_config = \Drupal::config('fbl.settings');
   $fbl_value = $fbl_config->get('field_based_login');
   // If configuration not yet set, then allow users to login by username
@@ -97,11 +104,13 @@ function fbl_login_name_validate($form, FormStateInterface &$form_state) {
         }
       }
     }
+    // Load user object by username.
     $user_load_by_name = user_load_by_name($login_input);
     if ($user_load_by_name && $allow_user_login_by_name) {
       $user_not_found = FALSE;
     }
 
+    // Load user object by its email.
     $user_load_by_mail = user_load_by_mail($login_input);
     if ($user_load_by_mail && $allow_user_login_by_email) {
       $user_not_found = FALSE;
@@ -113,4 +122,5 @@ function fbl_login_name_validate($form, FormStateInterface &$form_state) {
       \Drupal::logger('user')->notice('Login attempt failed for %user.', array('%user' => $login_input));
     }
   }
+
 }

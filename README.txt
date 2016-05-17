@@ -40,6 +40,7 @@ MAINTAINERS
 
 Current maintainers:
  * Krishna Kanth (krknth) - https://www.drupal.org/u/krknth
+ * Kishore Kumar (N.kishorekumar) - https://www.drupal.org/u/nkishorekumar
 
 This project has been sponsored by:
  * Valuebound
