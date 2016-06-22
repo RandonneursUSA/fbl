@@ -10,11 +10,11 @@ CONTENTS OF THIS FILE
 INTRODUCTION
 ------------
 
-This module extends drupal core user login feature, using this module admin
-is allows to configure new user account field as loggable.like mobile number
-or user unique id number as a field & users can login with the same mobile
-number or user serial number. for more info visit
-https://www.drupal.org/project/fbl
+This module extends Drupal core User login features. Using this module, Admin
+is allowed to configure new user account fields as loggable like mobile number
+or user unique Id number as a field. And users can also login with the same
+mobile number or user serial number.
+For more info, Please visit https://www.drupal.org/project/fbl
 
 REQUIREMENTS
 ------------
