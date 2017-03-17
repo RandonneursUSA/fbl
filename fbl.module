@@ -96,7 +96,8 @@ function fbl_login_name_validate($form, FormStateInterface &$form_state) {
         }
         else {
           $uid = array_keys($results)[0];
-          $query = db_select('users_field_data', 'u');
+          $connection = \Drupal::database();
+          $query = $connection->select('users_field_data', 'u');
           $query->fields('u', array('name'));
           $query->condition('u.uid', $uid);
           $name = $query->execute()->fetchObject();

@@ -153,12 +153,14 @@ class FblConfiguration extends ConfigFormBase {
  * @param field_name
  *  Machine name of the user account field.
  */
+
+
 function _fbl_check_for_duplicates($field_name) {
   $table_name = 'user__' . $field_name;
   $table_column = $field_name . '_value';
   //query to find the number of unique values of the login selected field
-
-  $query = db_select($table_name, 't');
+  $connection = \Drupal::database();
+  $query = $connection->select($table_name, 't');
   $query->fields('t', array($table_column));
   $query->groupBy('t.' . $table_column . '');
   $query->condition('t.bundle', 'user');
@@ -181,7 +183,8 @@ function _fbl_check_for_duplicates($field_name) {
  * @return string
  */
 function _fbl_user_count() {
-  $query = db_select('users', 'u');
+  $connection = \Drupal::database();
+  $query = $connection->select('users', 'u');
   $query->fields('u', array('uid'));
   $query->condition('u.uid', '0', '!=');
   $user_count = $query->countQuery()->execute()->fetchField();
@@ -197,7 +200,8 @@ function _fbl_user_count() {
 function _fbl_field_data_count($field_name) {
   $table_name = 'user__' . $field_name;
   $table_column = $field_name . '_value';
-  $query = db_select($table_name, 'field_value');
+  $connection = \Drupal::database();
+  $query = $connection->select($table_name, 'field_value');
   $query->fields('field_value', array($table_column));
   $query->condition('field_value.bundle', 'user');
   $field_data_count = $query->countQuery()->execute()->fetchField();
