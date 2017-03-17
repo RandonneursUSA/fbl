@@ -63,7 +63,7 @@ function fbl_user_register_validate($form, FormStateInterface &$form_state) {
     $query->condition($field_name . '.value', $new_user_input[0]['value']);
     $results = $query->execute();
     if (count($results) > 1) {
-      $form_state->setErrorByName($field_name, t('The entered value is already exists. Please enter different value'));
+      $form_state->setErrorByName($field_name, t('The entered value already exists. Please enter a different value'));
     }
   }
 }
