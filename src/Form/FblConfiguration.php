@@ -39,7 +39,7 @@ class FblConfiguration extends ConfigFormBase {
     $entity_type_id = 'user';
     $bundle = 'user';
     $bundleFields = array();
-    foreach (\Drupal::entityManager()->getFieldDefinitions($entity_type_id, $bundle) as $field_name => $field_definition) {
+    foreach (\Drupal::entityTypeManager()->getFieldDefinitions($entity_type_id, $bundle) as $field_name => $field_definition) {
       if (!empty($field_definition->getTargetBundle())) {
         if ($field_definition->getType() == 'string' || $field_definition->getType() == 'integer') {
           $bundleFields[$field_name] = $field_definition->getLabel();
@@ -107,7 +107,7 @@ class FblConfiguration extends ConfigFormBase {
     }
     $entity_type_id = 'user';
     $bundle = 'user';
-    foreach (\Drupal::entityManager()->getFieldDefinitions($entity_type_id, $bundle) as $field_name_value => $field_definition) {
+    foreach (\Drupal::entityTypeManager()->getFieldDefinitions($entity_type_id, $bundle) as $field_name_value => $field_definition) {
       if (!empty($field_definition->getTargetBundle())) {
         if ($field_name_value == $field_name) {
           $is_required = $field_definition->isRequired();
