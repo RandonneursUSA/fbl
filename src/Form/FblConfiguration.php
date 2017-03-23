@@ -38,7 +38,7 @@ class FblConfiguration extends ConfigFormBase {
     // todo : in feature profile 2 should work :
     $entity_type_id = 'user';
     $bundle = 'user';
-    $bundleFields = array();
+    $bundleFields = [];
     foreach (\Drupal::entityTypeManager()->getFieldDefinitions($entity_type_id, $bundle) as $field_name => $field_definition) {
       if (!empty($field_definition->getTargetBundle())) {
         if ($field_definition->getType() == 'string' || $field_definition->getType() == 'integer') {
@@ -161,7 +161,7 @@ function _fbl_check_for_duplicates($field_name) {
   //query to find the number of unique values of the login selected field
   $connection = \Drupal::database();
   $query = $connection->select($table_name, 't');
-  $query->fields('t', array($table_column));
+  $query->fields('t', [$table_column]);
   $query->groupBy('t.' . $table_column . '');
   $query->condition('t.bundle', 'user');
   $query->addExpression('COUNT(' . $table_column . ')', 'field_count');
@@ -185,7 +185,7 @@ function _fbl_check_for_duplicates($field_name) {
 function _fbl_user_count() {
   $connection = \Drupal::database();
   $query = $connection->select('users', 'u');
-  $query->fields('u', array('uid'));
+  $query->fields('u', ['uid']);
   $query->condition('u.uid', '0', '!=');
   $user_count = $query->countQuery()->execute()->fetchField();
   return $user_count;
@@ -202,7 +202,7 @@ function _fbl_field_data_count($field_name) {
   $table_column = $field_name . '_value';
   $connection = \Drupal::database();
   $query = $connection->select($table_name, 'field_value');
-  $query->fields('field_value', array($table_column));
+  $query->fields('field_value', [$table_column]);
   $query->condition('field_value.bundle', 'user');
   $field_data_count = $query->countQuery()->execute()->fetchField();
   return $field_data_count;
