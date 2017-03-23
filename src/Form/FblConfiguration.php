@@ -31,7 +31,7 @@ class FblConfiguration extends ConfigFormBase {
     $default_value = $default_value_config->get('field_based_login');
     $form['field_based_login'] = [
       '#type' => 'fieldset',
-      '#title' => t('Field based login Configurations'),
+      '#title' => $this->t('Field based login Configurations'),
       '#collapsible' => FALSE,
       '#tree' => TRUE,
     ];
@@ -48,30 +48,30 @@ class FblConfiguration extends ConfigFormBase {
     }
     $form['field_based_login']['field'] = [
       '#type' => 'select',
-      '#title' => t('Unique field'),
+      '#title' => $this->t('Unique field'),
       '#options' => $bundleFields,
       '#empty_option' => '- Select -',
       '#default_value' => isset($default_value['field']) ? $default_value['field'] : '',
-      '#description' => t('Unique field to allow users to login with this field. Note : Selected field will become unique filed.'),
+      '#description' => $this->t('Unique field to allow users to login with this field. Note : Selected field will become unique filed.'),
     ];
 
     $form['field_based_login']['allow_user_name'] = [
       '#type' => 'checkbox',
-      '#title' => t('Allow login with username'),
+      '#title' => $this->t('Allow login with username'),
       '#default_value' => isset($default_value['allow_user_name']) ? $default_value['allow_user_name'] : 1,
     ];
 
     $form['field_based_login']['allow_user_email'] = [
       '#type' => 'checkbox',
-      '#title' => t('Allow login with E-mail'),
+      '#title' => $this->t('Allow login with E-mail'),
       '#default_value' => isset($default_value['allow_user_email']) ? $default_value['allow_user_email'] : '',
     ];
 
     $form['field_based_login']['label'] = [
       '#type' => 'textfield',
-      '#title' => t('User login form - User name field Label'),
+      '#title' => $this->t('User login form - User name field Label'),
       '#default_value' => isset($default_value['label']) ? $default_value['label'] : '',
-      '#description' => t('Ex: Phone / E-mail'),
+      '#description' => $this->t('Ex: Phone / E-mail'),
       '#size' => 60,
       '#maxlength' => 60,
     ];
@@ -79,9 +79,9 @@ class FblConfiguration extends ConfigFormBase {
     // added description field for configuration.
     $form['field_based_login']['field_desc'] = [
       '#type' => 'textfield',
-      '#title' => t('User login form - User name field Description'),
+      '#title' => $this->t('User login form - User name field Description'),
       '#default_value' => isset($default_value['field_desc']) ? $default_value['field_desc'] : '',
-      '#description' => t('Ex: Provide description for custom login field'),
+      '#description' => $this->t('Ex: Provide description for custom login field'),
       '#size' => 60,
       '#maxlength' => 60,
     ];
@@ -99,7 +99,7 @@ class FblConfiguration extends ConfigFormBase {
     $allow_user_login_by_name = $form_state->getValue(['field_based_login', 'allow_user_name']);
     //$allow_user_login_by_email = $form_state->getValue(['field_based_login', 'allow_user_email']);
     if (isset($field_name) && empty($field_name) && ($allow_user_login_by_name == 0) && ($allow_user_login_by_name == 0)) {
-      $form_state->setErrorByName('field_based_login][field', t('Please select any one of the option to login'));
+      $form_state->setErrorByName('field_based_login][field', $this->t('Please select any one of the option to login'));
     }
     $user_count = _fbl_user_count();
     if (isset($field_name) && !empty($field_name)) {
@@ -116,13 +116,13 @@ class FblConfiguration extends ConfigFormBase {
     }
     if (!empty($field_name)) {
       if ($is_required == '') {
-        drupal_set_message(t('Selected field is not mandatory.'), 'warning');
+        drupal_set_message($this->t('Selected field is not mandatory.'), 'warning');
       }
       if ($user_count > $field_data_count) {
-        drupal_set_message(t('Selected field is not having data for some of the user'), 'warning');
+        drupal_set_message($this->t('Selected field is not having data for some of the user'), 'warning');
       }
       if (_fbl_check_for_duplicates($field_name)) {
-        $form_state->setErrorByName('field_based_login][field', t('Selected field is not unique. There are duplicates found, Please select other field.'));
+        $form_state->setErrorByName('field_based_login][field', $this->t('Selected field is not unique. There are duplicates found, Please select other field.'));
       }
     }
   }
