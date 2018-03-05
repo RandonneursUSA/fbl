@@ -119,8 +119,6 @@ class FblConfiguration extends ConfigFormBase {
       '#maxlength' => 60,
     ];
 
-    $form['#validate'][] = '_fbl_configuration_validate';
-
     return parent::buildForm($form, $form_state);
   }
 
