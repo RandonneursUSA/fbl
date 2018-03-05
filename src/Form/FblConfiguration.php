@@ -5,8 +5,41 @@ namespace Drupal\fbl\Form;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
+use Drupal\Core\Entity\EntityFieldManagerInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
+/**
+ * Class FblConfiguration.
+ *
+ * @package Drupal\fbi\Form
+ */
 class FblConfiguration extends ConfigFormBase {
+
+  /**
+   * The entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityFieldManagerInterface
+   */
+  protected $entityFieldManager;
+
+  /**
+   * Constructs a new EntityFieldManager.
+   *
+   * @param \Drupal\Core\Entity\EntityFieldManagerInterface $entity_manager
+   *   The entity type manager.
+   */
+  public function __construct(EntityFieldManagerInterface $entity_manager) {
+    $this->entityFieldManager = $entity_manager;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('entity_field.manager')
+    );
+  }
 
   /**
    * {@inheritdoc}
@@ -26,7 +59,7 @@ class FblConfiguration extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    //Getting the configuration value
+    // Getting the configuration value.
     $default_value_config = $this->config('fbl.settings');
     $default_value = $default_value_config->get('field_based_login');
     $form['field_based_login'] = [
@@ -35,11 +68,11 @@ class FblConfiguration extends ConfigFormBase {
       '#collapsible' => FALSE,
       '#tree' => TRUE,
     ];
-    // todo : in feature profile 2 should work :
+    // Todo : in feature profile 2 should work :
     $entity_type_id = 'user';
     $bundle = 'user';
     $bundleFields = [];
-    foreach (\Drupal::service('entity_field.manager')->getFieldDefinitions($entity_type_id, $bundle) as $field_name => $field_definition) {
+    foreach ($this->entityFieldManager->getFieldDefinitions($entity_type_id, $bundle) as $field_name => $field_definition) {
       if (!empty($field_definition->getTargetBundle())) {
         if ($field_definition->getType() == 'string' || $field_definition->getType() == 'integer') {
           $bundleFields[$field_name] = $field_definition->getLabel();
@@ -76,7 +109,7 @@ class FblConfiguration extends ConfigFormBase {
       '#maxlength' => 60,
     ];
 
-    // added description field for configuration.
+    // Added description field for configuration.
     $form['field_based_login']['field_desc'] = [
       '#type' => 'textfield',
       '#title' => $this->t('User login form - User name field Description'),
@@ -94,10 +127,9 @@ class FblConfiguration extends ConfigFormBase {
   /**
    * {@inheritdoc}
    */
-  public function validateForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
+  public function validateForm(array &$form, FormStateInterface $form_state) {
     $field_name = $form_state->getValue(['field_based_login', 'field']);
     $allow_user_login_by_name = $form_state->getValue(['field_based_login', 'allow_user_name']);
-    //$allow_user_login_by_email = $form_state->getValue(['field_based_login', 'allow_user_email']);
     if (isset($field_name) && empty($field_name) && ($allow_user_login_by_name == 0) && ($allow_user_login_by_name == 0)) {
       $form_state->setErrorByName('field_based_login][field', $this->t('Please select any one of the option to login'));
     }
@@ -107,7 +139,7 @@ class FblConfiguration extends ConfigFormBase {
     }
     $entity_type_id = 'user';
     $bundle = 'user';
-    foreach (\Drupal::service('entity_field.manager')->getFieldDefinitions($entity_type_id, $bundle) as $field_name_value => $field_definition) {
+    foreach ($this->entityFieldManager->getFieldDefinitions($entity_type_id, $bundle) as $field_name_value => $field_definition) {
       if (!empty($field_definition->getTargetBundle())) {
         if ($field_name_value == $field_name) {
           $is_required = $field_definition->isRequired();
@@ -147,31 +179,27 @@ class FblConfiguration extends ConfigFormBase {
 
 }
 
-/*
+/**
  * Helper function to check duplicate records of user data.
  *
- * @param field_name
- *  Machine name of the user account field.
+ * @param string $field_name
+ *   Machine name of the user account field.
  */
-
-
 function _fbl_check_for_duplicates($field_name) {
   $table_name = 'user__' . $field_name;
   $table_column = $field_name . '_value';
-  //query to find the number of unique values of the login selected field
   $connection = \Drupal::database();
   $query = $connection->select($table_name, 't');
   $query->fields('t', [$table_column]);
   $query->groupBy('t.' . $table_column . '');
   $query->condition('t.bundle', 'user');
   $query->addExpression('COUNT(' . $table_column . ')', 'field_count');
-  //$query->havingCondition('t.' . $table_column, '1', '>');
   $query->range(0, 1);
   $duplicate_count = $query->execute()->fetchAll();
   foreach ($duplicate_count as $count) {
     $count = $count->field_count;
   }
-  // todo : exception handling  ??
+  // Todo : exception handling  ??
   if ($count > 1) {
     return TRUE;
   }
@@ -179,8 +207,10 @@ function _fbl_check_for_duplicates($field_name) {
 }
 
 /**
- * Returns number of user
+ * Returns number of user.
+ *
  * @return string
+ *   Returns User
  */
 function _fbl_user_count() {
   $connection = \Drupal::database();
@@ -192,10 +222,13 @@ function _fbl_user_count() {
 }
 
 /**
- * @param string $field_name
+ * Helper function to count.
  *
- * @return integer
- *  Returns how many fields having value
+ * @param string $field_name
+ *   Machine name of the user account field.
+ *
+ * @return int
+ *   Returns how many fields having value
  */
 function _fbl_field_data_count($field_name) {
   $table_name = 'user__' . $field_name;
