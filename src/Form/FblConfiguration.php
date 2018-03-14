@@ -74,7 +74,7 @@ class FblConfiguration extends ConfigFormBase {
     $bundleFields = [];
     foreach ($this->entityFieldManager->getFieldDefinitions($entity_type_id, $bundle) as $field_name => $field_definition) {
       if (!empty($field_definition->getTargetBundle())) {
-        if ($field_definition->getType() == 'string' || $field_definition->getType() == 'integer') {
+        if ($field_definition->getType() == 'string' || $field_definition->getType() == 'integer' || $field_definition->getType() == 'telephone') {
           $bundleFields[$field_name] = $field_definition->getLabel();
         }
       }
