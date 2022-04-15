@@ -2,6 +2,7 @@
 
 namespace Drupal\fbl\Form;
 
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
@@ -9,9 +10,9 @@ use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Class FblConfiguration.
+ * Field Based Login Configuration Form.
  *
- * @package Drupal\fbi\Form
+ * @package Drupal\fbl\Form
  */
 class FblConfiguration extends ConfigFormBase {
 
@@ -23,12 +24,15 @@ class FblConfiguration extends ConfigFormBase {
   protected $entityFieldManager;
 
   /**
-   * Constructs a new EntityFieldManager.
+   * Constructor.
    *
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   Config factory object.
    * @param \Drupal\Core\Entity\EntityFieldManagerInterface $entity_manager
-   *   The entity type manager.
+   *   The entity field manager.
    */
-  public function __construct(EntityFieldManagerInterface $entity_manager) {
+  public function __construct(ConfigFactoryInterface $config_factory, EntityFieldManagerInterface $entity_manager) {
+    parent::__construct($config_factory);
     $this->entityFieldManager = $entity_manager;
   }
 
@@ -37,6 +41,7 @@ class FblConfiguration extends ConfigFormBase {
    */
   public static function create(ContainerInterface $container) {
     return new static(
+      $container->get('config.factory'),
       $container->get('entity_field.manager')
     );
   }
@@ -45,7 +50,7 @@ class FblConfiguration extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function getFormId() {
-    return '_fbl_configuration';
+    return 'fbl_configuration_form';
   }
 
   /**
@@ -68,7 +73,6 @@ class FblConfiguration extends ConfigFormBase {
       '#collapsible' => FALSE,
       '#tree' => TRUE,
     ];
-    // Todo : in feature profile 2 should work :
     $entity_type_id = 'user';
     $bundle = 'user';
     $bundleFields = [];
@@ -84,26 +88,26 @@ class FblConfiguration extends ConfigFormBase {
       '#title' => $this->t('Unique field'),
       '#options' => $bundleFields,
       '#empty_option' => '- Select -',
-      '#default_value' => isset($default_value['field']) ? $default_value['field'] : '',
+      '#default_value' => $default_value['field'] ?? '',
       '#description' => $this->t('Unique field to allow users to login with this field. Note : Selected field will become unique filed.'),
     ];
 
     $form['field_based_login']['allow_user_name'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Allow login with username'),
-      '#default_value' => isset($default_value['allow_user_name']) ? $default_value['allow_user_name'] : 1,
+      '#default_value' => $default_value['allow_user_name'] ?? 1,
     ];
 
     $form['field_based_login']['allow_user_email'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Allow login with E-mail'),
-      '#default_value' => isset($default_value['allow_user_email']) ? $default_value['allow_user_email'] : '',
+      '#default_value' => $default_value['allow_user_email'] ?? '',
     ];
 
     $form['field_based_login']['label'] = [
       '#type' => 'textfield',
       '#title' => $this->t('User login form - User name field Label'),
-      '#default_value' => isset($default_value['label']) ? $default_value['label'] : '',
+      '#default_value' => $default_value['label'] ?? '',
       '#description' => $this->t('Ex: Phone / E-mail'),
       '#size' => 60,
       '#maxlength' => 60,
@@ -113,7 +117,7 @@ class FblConfiguration extends ConfigFormBase {
     $form['field_based_login']['field_desc'] = [
       '#type' => 'textfield',
       '#title' => $this->t('User login form - User name field Description'),
-      '#default_value' => isset($default_value['field_desc']) ? $default_value['field_desc'] : '',
+      '#default_value' => $default_value['field_desc'] ?? '',
       '#description' => $this->t('Ex: Provide description for custom login field'),
       '#size' => 60,
       '#maxlength' => 60,
@@ -127,8 +131,11 @@ class FblConfiguration extends ConfigFormBase {
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
     $field_name = $form_state->getValue(['field_based_login', 'field']);
-    $allow_user_login_by_name = $form_state->getValue(['field_based_login', 'allow_user_name']);
-    if (isset($field_name) && empty($field_name) && ($allow_user_login_by_name == 0) && ($allow_user_login_by_name == 0)) {
+    $allow_user_login_by_name = $form_state->getValue([
+      'field_based_login',
+      'allow_user_name',
+    ]);
+    if (isset($field_name) && empty($field_name) && ($allow_user_login_by_name == 0)) {
       $form_state->setErrorByName('field_based_login][field', $this->t('Please select any one of the option to login'));
     }
     $user_count = _fbl_user_count();
@@ -137,6 +144,7 @@ class FblConfiguration extends ConfigFormBase {
     }
     $entity_type_id = 'user';
     $bundle = 'user';
+    $is_required = FALSE;
     foreach ($this->entityFieldManager->getFieldDefinitions($entity_type_id, $bundle) as $field_name_value => $field_definition) {
       if (!empty($field_definition->getTargetBundle())) {
         if ($field_name_value == $field_name) {
@@ -145,14 +153,13 @@ class FblConfiguration extends ConfigFormBase {
       }
     }
     if (!empty($field_name)) {
-      if ($is_required == '') {
-        // drupal_set_message was removed from Drupal 9 - PL
-        //drupal_set_message($this->t('Selected field is not mandatory.'), 'warning');
-        $this->messenger()->addWarning($this->t('Selected field is not mandatory.'));
+      if (!$is_required) {
+        $this->messenger()
+          ->addWarning($this->t('Selected field is not mandatory.'));
       }
       if ($user_count > $field_data_count) {
-        //drupal_set_message($this->t('Selected field is not having data for some of the user'), 'warning');
-        $this->messenger()->addWarning($this->t('Selected field is not having data for some of the user'));
+        $this->messenger()
+          ->addWarning($this->t('Selected field is not having data for some of the user'));
       }
       if (_fbl_check_for_duplicates($field_name)) {
         $form_state->setErrorByName('field_based_login][field', $this->t('Selected field is not unique. There are duplicates found, Please select other field.'));
@@ -165,16 +172,13 @@ class FblConfiguration extends ConfigFormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $config = $this->config('fbl.settings');
-
     foreach (Element::children($form) as $variable) {
       $config->set($variable, $form_state->getValue($form[$variable]['#parents']));
     }
     $config->save();
-
     if (method_exists($this, '_submitForm')) {
       $this->_submitForm($form, $form_state);
     }
-
     parent::submitForm($form, $form_state);
   }
 

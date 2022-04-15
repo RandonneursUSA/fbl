@@ -13,17 +13,16 @@ use Drupal\Core\Url;
  * Implements hook_help().
  */
 function fbl_help($route_name, RouteMatchInterface $route_match) {
-  switch ($route_name) {
-    // Main module help for the content_type_dependency module.
-    case 'help.page.fbl':
-      $output = '';
-      $output .= '<h3>' . t('About') . '</h3>';
-      $output .= '<p>' . t('Field Based login') . '</p>';
-      $output .= '<p>' . t('This module extends drupal core user login feature, using this module admin is allows to configure user account field as loggable. like mobile number or serial number field & users can login with the same mobile number or serial number field. for more info visit <a href=":link">here</a>..', [':link' => 'https://www.drupal.org/project/fbl']) . '</p>';
-      $output .= '<h3>' . t('Uses') . '</h3>';
-      $output .= '<dl>';
-      $output .= '<dt>' . t('Assigning user field to user login') . '</dt>';
-      return $output;
+  // Main module help for the content_type_dependency module.
+  if ($route_name == 'help.page.fbl') {
+    $output = '';
+    $output .= '<h3>' . t('About') . '</h3>';
+    $output .= '<p>' . t('Field Based login') . '</p>';
+    $output .= '<p>' . t('This module extends drupal core user login feature, using this module admin is allows to configure user account field as loggable. like mobile number or serial number field & users can login with the same mobile number or serial number field. for more info visit <a href=":link">here</a>..', [':link' => 'https://www.drupal.org/project/fbl']) . '</p>';
+    $output .= '<h3>' . t('Uses') . '</h3>';
+    $output .= '<dl>';
+    $output .= '<dt>' . t('Assigning user field to user login') . '</dt>';
+    return $output;
   }
 }
 
@@ -31,7 +30,6 @@ function fbl_help($route_name, RouteMatchInterface $route_match) {
  * Implements hook_form_alter().
  */
 function fbl_form_alter(&$form, FormStateInterface $form_state, $form_id) {
-
   if ($form_id == 'user_login_form') {
     // Load fbl configurations.
     $fbl_config = \Drupal::config('fbl.settings');
@@ -40,7 +38,7 @@ function fbl_form_alter(&$form, FormStateInterface $form_state, $form_id) {
     if (!empty($fbl_value['label'])) {
       $form['name']['#title'] = $fbl_value['label'];
     }
-    if ($form_id == 'user_login_form' && !empty($fbl_value['field_desc'])) {
+    if (!empty($fbl_value['field_desc'])) {
       $form['name']['#description'] = t("@unique_field_desc", ['@unique_field_desc' => $fbl_value['field_desc']]);
     }
   }
@@ -78,7 +76,7 @@ function fbl_login_name_validate($form, FormStateInterface &$form_state) {
   $fbl_config = \Drupal::config('fbl.settings');
   $fbl_value = $fbl_config->get('field_based_login');
   // If configuration not yet set, then allow users to login by username.
-  $allow_user_login_by_name = isset($fbl_value['allow_user_name']) ? $fbl_value['allow_user_name'] : 1;
+  $allow_user_login_by_name = $fbl_value['allow_user_name'] ?? 1;
   $allow_user_login_by_email = $fbl_value['allow_user_email'];
   $user_not_found = TRUE;
   $login_input = $form_state->getValue('name');
@@ -93,8 +91,9 @@ function fbl_login_name_validate($form, FormStateInterface &$form_state) {
         // Check for multiple records.
         if (count($results) > 1) {
           $form_state->setErrorByName('name', t('Sorry, Please contact administration. There are multiple user records found with same input.'));
-          // Todo : enter field information.
-          \Drupal::logger('user')->notice('Login attempt failed for %user. with field', ['%user' => $login_input]);
+          // @todo enter field information.
+          \Drupal::logger('user')
+            ->notice('Login attempt failed for %user. with field', ['%user' => $login_input]);
         }
         else {
           $uid = array_keys($results)[0];
@@ -117,14 +116,13 @@ function fbl_login_name_validate($form, FormStateInterface &$form_state) {
     $user_load_by_mail = user_load_by_mail($login_input);
     if ($user_load_by_mail && $allow_user_login_by_email) {
       $user_not_found = FALSE;
-      // getUsername was dropped from Drupal 9 - PL
-      // $form_state->setValue('name', $user_load_by_mail->getUsername());
       $form_state->setValue('name', $user_load_by_mail->getDisplayName());
     }
 
     if ($user_not_found) {
       $form_state->setErrorByName('name', t('Sorry, unrecognized username or password. <a href="@password">Have you forgotten your password?</a>', ['@password' => Url::fromRoute('user.pass')]));
-      \Drupal::logger('user')->notice('Login attempt failed for %user.', ['%user' => $login_input]);
+      \Drupal::logger('user')
+        ->notice('Login attempt failed for %user.', ['%user' => $login_input]);
     }
   }
 
