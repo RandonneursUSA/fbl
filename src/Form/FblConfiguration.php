@@ -146,10 +146,13 @@ class FblConfiguration extends ConfigFormBase {
     }
     if (!empty($field_name)) {
       if ($is_required == '') {
-        drupal_set_message($this->t('Selected field is not mandatory.'), 'warning');
+        // drupal_set_message was removed from Drupal 9 - PL
+        //drupal_set_message($this->t('Selected field is not mandatory.'), 'warning');
+        $this->messenger()->addWarning($this->t('Selected field is not mandatory.'));
       }
       if ($user_count > $field_data_count) {
-        drupal_set_message($this->t('Selected field is not having data for some of the user'), 'warning');
+        //drupal_set_message($this->t('Selected field is not having data for some of the user'), 'warning');
+        $this->messenger()->addWarning($this->t('Selected field is not having data for some of the user'));
       }
       if (_fbl_check_for_duplicates($field_name)) {
         $form_state->setErrorByName('field_based_login][field', $this->t('Selected field is not unique. There are duplicates found, Please select other field.'));

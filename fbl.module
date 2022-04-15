@@ -117,7 +117,9 @@ function fbl_login_name_validate($form, FormStateInterface &$form_state) {
     $user_load_by_mail = user_load_by_mail($login_input);
     if ($user_load_by_mail && $allow_user_login_by_email) {
       $user_not_found = FALSE;
-      $form_state->setValue('name', $user_load_by_mail->getUsername());
+      // getUsername was dropped from Drupal 9 - PL
+      // $form_state->setValue('name', $user_load_by_mail->getUsername());
+      $form_state->setValue('name', $user_load_by_mail->getDisplayName());
     }
 
     if ($user_not_found) {
