@@ -3,5 +3,6 @@ description: 'Allows users to login with different fields.'
 core_version_requirement: ^8 || ^9
 type: module
 configure: fbl.configuration
+package: User
 dependencies:
   - drupal:user

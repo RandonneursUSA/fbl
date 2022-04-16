@@ -3,6 +3,7 @@
 namespace Drupal\fbl\Form;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Database\Connection;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
@@ -24,16 +25,30 @@ class FblConfiguration extends ConfigFormBase {
   protected $entityFieldManager;
 
   /**
+   * The database connection.
+   *
+   * @var \Drupal\Core\Database\Connection
+   */
+  protected $database;
+
+  /**
    * Constructor.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   Config factory object.
    * @param \Drupal\Core\Entity\EntityFieldManagerInterface $entity_manager
    *   The entity field manager.
+   * @param \Drupal\Core\Database\Connection $database
+   *   The database connection.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, EntityFieldManagerInterface $entity_manager) {
+  public function __construct(
+    ConfigFactoryInterface $config_factory,
+    EntityFieldManagerInterface $entity_manager,
+    Connection $database
+  ) {
     parent::__construct($config_factory);
     $this->entityFieldManager = $entity_manager;
+    $this->database = $database;
   }
 
   /**
@@ -42,7 +57,8 @@ class FblConfiguration extends ConfigFormBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('config.factory'),
-      $container->get('entity_field.manager')
+      $container->get('entity_field.manager'),
+      $container->get('database')
     );
   }
 
@@ -138,9 +154,9 @@ class FblConfiguration extends ConfigFormBase {
     if (isset($field_name) && empty($field_name) && ($allow_user_login_by_name == 0)) {
       $form_state->setErrorByName('field_based_login][field', $this->t('Please select any one of the option to login'));
     }
-    $user_count = _fbl_user_count();
+    $user_count = $this->getUserCount();
     if (isset($field_name) && !empty($field_name)) {
-      $field_data_count = _fbl_field_data_count($field_name);
+      $field_data_count = $this->getFieldDataCount($field_name);
     }
     $entity_type_id = 'user';
     $bundle = 'user';
@@ -153,16 +169,19 @@ class FblConfiguration extends ConfigFormBase {
       }
     }
     if (!empty($field_name)) {
+      // Field is required check.
       if (!$is_required) {
         $this->messenger()
           ->addWarning($this->t('Selected field is not mandatory.'));
       }
+      // Check to see if any users are missing the data for this field.
       if ($user_count > $field_data_count) {
         $this->messenger()
-          ->addWarning($this->t('Selected field is not having data for some of the user'));
+          ->addWarning($this->t('Some of the users are missing data for the selected field.'));
       }
-      if (_fbl_check_for_duplicates($field_name)) {
-        $form_state->setErrorByName('field_based_login][field', $this->t('Selected field is not unique. There are duplicates found, Please select other field.'));
+      // Check for duplicates.
+      if ($this->checkForDuplicates($field_name)) {
+        $form_state->setErrorByName('field_based_login][field', $this->t('Selected field is not unique. Duplicates found. Please select another field.'));
       }
     }
   }
@@ -182,66 +201,61 @@ class FblConfiguration extends ConfigFormBase {
     parent::submitForm($form, $form_state);
   }
 
-}
-
-/**
- * Helper function to check duplicate records of user data.
- *
- * @param string $field_name
- *   Machine name of the user account field.
- */
-function _fbl_check_for_duplicates($field_name) {
-  $table_name = 'user__' . $field_name;
-  $table_column = $field_name . '_value';
-  $connection = \Drupal::database();
-  $query = $connection->select($table_name, 't');
-  $query->fields('t', [$table_column]);
-  $query->groupBy('t.' . $table_column . '');
-  $query->condition('t.bundle', 'user');
-  $query->addExpression('COUNT(' . $table_column . ')', 'field_count');
-  $query->range(0, 1);
-  $duplicate_count = $query->execute()->fetchAll();
-  foreach ($duplicate_count as $count) {
-    $count = $count->field_count;
+  /**
+   * Returns number of users.
+   *
+   * @return string
+   *   Returns user count.
+   */
+  protected function getUserCount() {
+    $query = $this->database->select('users', 'u');
+    $query->fields('u', ['uid']);
+    $query->condition('u.uid', '0', '!=');
+    return $query->countQuery()->execute()->fetchField();
   }
-  // Todo : exception handling  ??
-  if ($count > 1) {
-    return TRUE;
+
+  /**
+   * Helper function to count.
+   *
+   * @param string $field_name
+   *   Machine name of the user account field.
+   *
+   * @return int
+   *   Returns how many fields having value
+   */
+  protected function getFieldDataCount($field_name) {
+    $table_name = 'user__' . $field_name;
+    $table_column = $field_name . '_value';
+    $query = $this->database->select($table_name, 'field_value');
+    $query->fields('field_value', [$table_column]);
+    $query->condition('field_value.bundle', 'user');
+    return $query->countQuery()->execute()->fetchField();
   }
-  return FALSE;
-}
 
-/**
- * Returns number of user.
- *
- * @return string
- *   Returns User
- */
-function _fbl_user_count() {
-  $connection = \Drupal::database();
-  $query = $connection->select('users', 'u');
-  $query->fields('u', ['uid']);
-  $query->condition('u.uid', '0', '!=');
-  $user_count = $query->countQuery()->execute()->fetchField();
-  return $user_count;
-}
+  /**
+   * Helper function to check duplicate records of user data.
+   *
+   * @param string $field_name
+   *   Machine name of the user account field.
+   */
+  protected function checkForDuplicates($field_name) {
+    $table_name = 'user__' . $field_name;
+    $table_column = $field_name . '_value';
+    $query = $this->database->select($table_name, 't');
+    $query->fields('t', [$table_column]);
+    $query->groupBy('t.' . $table_column);
+    $query->condition('t.bundle', 'user');
+    $query->addExpression('COUNT(' . $table_column . ')', 'field_count');
+    $query->range(0, 1);
+    $duplicate_count = $query->execute()->fetchAll();
+    $count = 0;
+    foreach ($duplicate_count as $count) {
+      $count = $count->field_count;
+    }
+    if ($count > 1) {
+      return TRUE;
+    }
+    return FALSE;
+  }
 
-/**
- * Helper function to count.
- *
- * @param string $field_name
- *   Machine name of the user account field.
- *
- * @return int
- *   Returns how many fields having value
- */
-function _fbl_field_data_count($field_name) {
-  $table_name = 'user__' . $field_name;
-  $table_column = $field_name . '_value';
-  $connection = \Drupal::database();
-  $query = $connection->select($table_name, 'field_value');
-  $query->fields('field_value', [$table_column]);
-  $query->condition('field_value.bundle', 'user');
-  $field_data_count = $query->countQuery()->execute()->fetchField();
-  return $field_data_count;
 }
