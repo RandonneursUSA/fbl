@@ -84,10 +84,10 @@ class FblConfiguration extends ConfigFormBase {
     $default_value_config = $this->config('fbl.settings');
     $default_value = $default_value_config->get('field_based_login');
     $form['field_based_login'] = [
-      '#type' => 'fieldset',
-      '#title' => $this->t('Field based login Configurations'),
-      '#collapsible' => FALSE,
+      '#type' => 'details',
+      '#title' => $this->t('Field based login settings'),
       '#tree' => TRUE,
+      '#open' => TRUE,
     ];
     $entity_type_id = 'user';
     $bundle = 'user';

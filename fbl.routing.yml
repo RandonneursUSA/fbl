@@ -5,3 +5,5 @@ fbl.configuration:
     _form: \Drupal\fbl\Form\FblConfiguration
   requirements:
     _permission: 'administer fbl'
+  options:
+    _admin_route: TRUE

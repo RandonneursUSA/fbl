@@ -6,3 +6,4 @@ configure: fbl.configuration
 package: User
 dependencies:
   - drupal:user
+  - drupal:config_translation
