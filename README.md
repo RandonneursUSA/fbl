@@ -1,15 +1,25 @@
 # Field Based Login
 
-This module extends Drupal core User login features. Using this module, Admin
-is allowed to configure new user account fields as loggable like mobile number
-or user unique Id number as a field. And users can also log in with the same
-mobile number or user serial number.
+This module extends Drupal core user login. Using this module, an admin user
+is allowed to configure new user account fields, which can be used to login,
+instead of using username or email.
 
-For more info, Please visit https://www.drupal.org/project/fbl
+For example, you could set up a mobile number field. Each user should
+have a unique mobile number, and they can essentially use this number as their
+username for logging in.
+
+Normal methods for logging in can be allowed or not as well.
+
+For more information, please visit https://www.drupal.org/project/fbl
 
 ## Requirements
 
-This module does not have any special dependencies.
+Uses/extends the Drupal core user module.
+
+Module provides config translation if enabled, but not required.
+
+Useful if you want to translate the custom label and description, which can
+be altered on the user login form.
 
 ## Install
 
@@ -24,9 +34,7 @@ drush en fbl
 
 ## Configuration
 
-* Copy the "fbl" directory under "modules/" or "sites/all/modules";
-* Go to "admin/modules" and enable "Field Based Login" module;
-* Go to "admin/config/people/fbl" and configure the settings.
+* Goto "/admin/config/people/fbl" and configure the settings as required.
 
 ## Maintainers
 
