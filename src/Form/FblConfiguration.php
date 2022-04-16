@@ -192,12 +192,17 @@ class FblConfiguration extends ConfigFormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $config = $this->config('fbl.settings');
     foreach (Element::children($form) as $variable) {
-      $config->set($variable, $form_state->getValue($form[$variable]['#parents']));
+      if ($variable == 'field_based_login') {
+        $data = $form_state->getValue($form[$variable]['#parents']);
+        $data['label'] = strip_tags($data['label']);
+        $data['field_desc'] = strip_tags($data['field_desc']);
+        $config->set($variable, $data);
+      }
+      else {
+        $config->set($variable, $form_state->getValue($form[$variable]['#parents']));
+      }
     }
     $config->save();
-    if (method_exists($this, '_submitForm')) {
-      $this->_submitForm($form, $form_state);
-    }
     parent::submitForm($form, $form_state);
   }
 
