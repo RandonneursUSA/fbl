@@ -67,13 +67,16 @@ function fbl_user_register_validate($form, FormStateInterface &$form_state) {
   // Make sure we have field.
   $field_name = $fbl_value['field'];
   if (!empty($field_name)) {
-    $new_user_input = $form_state->getValue($field_name);
-    if (isset($new_user_input[0]['value'])) {
+    // Get user input.
+    $user_input = $form_state->getValue($field_name);
+    if (!empty($user_input[0]['value'])) {
+      // Run query to check and make sure value is unique.
       $query = \Drupal::entityQuery('user');
-      $query->condition($field_name . '.value', $new_user_input[0]['value']);
+      $query->condition($field_name . '.value', $user_input[0]['value']);
       $results = $query->execute();
+      // If any results, let's throw error.
       if (count($results)) {
-        $form_state->setErrorByName($field_name, t('The entered value already exists. Please enter a different value'));
+        $form_state->setErrorByName($field_name, t('The entered value already exists. Please enter a different value.'));
       }
     }
   }
@@ -85,6 +88,7 @@ function fbl_user_register_validate($form, FormStateInterface &$form_state) {
 function fbl_login_name_validate($form, FormStateInterface &$form_state) {
   // Load fbl configurations.
   $fbl_config = \Drupal::config('fbl.settings');
+  $logger = \Drupal::logger('user');
   $fbl_value = $fbl_config->get('field_based_login');
 
   // If configuration not yet set, then allow users to login by username.
@@ -103,17 +107,24 @@ function fbl_login_name_validate($form, FormStateInterface &$form_state) {
         // Check for multiple records.
         if (count($results) > 1) {
           $form_state->setErrorByName('name', t('Sorry, Please contact administration. There are multiple user records found with same input.'));
-          \Drupal::logger('user')
-            ->notice('Login attempt failed for %user. with field', ['%user' => $login_input]);
+          $logger->error('Login attempt failed for %user. Using field based login.', ['%user' => $login_input]);
         }
         else {
+          // Get user id.
           $uid = array_keys($results)[0];
+          // Run query to get real username.
           $connection = \Drupal::database();
           $query = $connection->select('users_field_data', 'u');
           $query->fields('u', ['name']);
           $query->condition('u.uid', $uid);
-          $name = $query->execute()->fetchObject();
-          $form_state->setValue('name', $name->name);
+          $user = $query->execute()->fetchObject();
+          if ($user) {
+            // Set real username.
+            $form_state->setValue('name', $user->name);
+          }
+          else {
+            $logger->warning('Login attempt, user not found for user id: %uid.', ['%uid' => $uid]);
+          }
         }
       }
     }
@@ -134,8 +145,7 @@ function fbl_login_name_validate($form, FormStateInterface &$form_state) {
     // User not found.
     if ($user_not_found) {
       $form_state->setErrorByName('name', t('Sorry, unrecognized username or password. <a href="@password">Have you forgotten your password?</a>', ['@password' => Url::fromRoute('user.pass')]));
-      \Drupal::logger('user')
-        ->notice('Login attempt failed for %user.', ['%user' => $login_input]);
+      $logger->notice('Login attempt failed for %user. Using field based login.', ['%user' => $login_input]);
     }
   }
 
