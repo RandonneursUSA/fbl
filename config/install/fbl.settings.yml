@@ -4,4 +4,3 @@ field_based_login:
   allow_user_email: 0
   label: ''
   field_desc: ''
-langcode: 'en'
