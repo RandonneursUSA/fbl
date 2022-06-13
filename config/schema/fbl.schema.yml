@@ -15,6 +15,9 @@ fbl.settings:
         allow_user_email:
           type: boolean
           label: 'Allow login with e-mail'
+        user_email_source:
+          type: string
+          label: 'Source for email/username'
         label:
           type: text
           label: 'User name field label'

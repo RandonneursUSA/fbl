@@ -103,9 +103,9 @@ class FblConfiguration extends ConfigFormBase {
       '#type' => 'select',
       '#title' => $this->t('Unique field'),
       '#options' => $bundleFields,
-      '#empty_option' => '- Select -',
+      '#empty_option' => $this->t('- Select -'),
       '#default_value' => $default_value['field'] ?? '',
-      '#description' => $this->t('Unique field to allow users to login with this field. Note : Selected field will become unique filed.'),
+      '#description' => $this->t('Unique field to allow users to login with this field. Note: Selected field will become unique.'),
     ];
 
     $form['field_based_login']['allow_user_name'] = [
@@ -118,6 +118,24 @@ class FblConfiguration extends ConfigFormBase {
       '#type' => 'checkbox',
       '#title' => $this->t('Allow login with E-mail'),
       '#default_value' => $default_value['allow_user_email'] ?? '',
+    ];
+
+    $sources = [
+      'account_name' => $this->t('Account name'),
+      'display_name' => $this->t('Display name'),
+    ];
+    $form['field_based_login']['user_email_source'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Source for email/username'),
+      '#options' => $sources,
+      '#empty_option' => $this->t('- Select -'),
+      '#description' => $this->t('Select where user email/name should be pulled from.'),
+      '#default_value' => $default_value['user_email_source'] ?? 'display_name',
+      '#states' => [
+        'visible' => [
+          ':input[name="field_based_login[allow_user_email]"]' => ['checked' => TRUE],
+        ],
+      ],
     ];
 
     $form['field_based_login']['label'] = [

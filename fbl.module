@@ -145,10 +145,19 @@ function fbl_login_name_validate($form, FormStateInterface &$form_state) {
     }
 
     // Load user object by its email.
+    /** @var \Drupal\user\Entity\User $user_load_by_mail */
     $user_load_by_mail = user_load_by_mail($login_input);
     if ($user_load_by_mail && $allow_user_login_by_email) {
       $user_not_found = FALSE;
-      $form_state->setValue('name', $user_load_by_mail->getDisplayName());
+      // Use display name by default.
+      $name = $user_load_by_mail->getDisplayName();
+      // Check to see if account name is specified.
+      // If so, use account name instead.
+      if ($fbl_value['user_email_source'] == 'account_name') {
+        $name = $user_load_by_mail->getAccountName();
+      }
+      // Set name.
+      $form_state->setValue('name', $name);
     }
 
     // User not found.
