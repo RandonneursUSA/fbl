@@ -1,0 +1,88 @@
+
+CONTRIBUTED PROJECTS
+--------------------------------------------------------------------------------
+Field Based Login 8.x-1.0
+Scanned on Thu, 06/10/2021 - 17:36.
+
+9 errors found. 1 warning found.
+
+web/modules/contrib/fbl/fbl.module:
+┌─────────┬──────┬──────────────────────────────────────────────────────────────┐
+│ STATUS  │ LINE │                           MESSAGE                            │
+├─────────┼──────┼──────────────────────────────────────────────────────────────┤
+│ Fix now │ 99   │ Call to deprecated function db_select(). Deprecated in       │
+│         │      │ drupal:8.0.0 and is removed from drupal:9.0.0. Instead, get  │
+│         │      │  a database connection injected into your service from the   │
+│         │      │ container and   call select() on it. For example,            │
+│         │      │ $injected_database->select($table, $alias, $options);        │
+│         │      │                                                              │
+│ Fix now │ 117  │ Call to deprecated method getUsername() of class             │
+│         │      │ Drupal\Core\Session\AccountInterface. Deprecated in          │
+│         │      │ drupal:8.0.0 and is removed from drupal:9.0.0.   Use         │
+│         │      │ Drupal\Core\Session\AccountInterface::getAccountName() or    │
+│         │      │ \Drupal\user\UserInterface::getDisplayName() instead.        │
+│         │      │                                                              │
+└─────────┴──────┴──────────────────────────────────────────────────────────────┘
+
+web/modules/contrib/fbl/src/Form/FblConfiguration.php:
+┌─────────┬──────┬──────────────────────────────────────────────────────────────┐
+│ STATUS  │ LINE │                           MESSAGE                            │
+├─────────┼──────┼──────────────────────────────────────────────────────────────┤
+│ Fix now │ 42   │ Call to deprecated method entityManager() of class Drupal.   │
+│         │      │ Deprecated in drupal:8.0.0 and is removed from drupal:9.0.0. │
+│         │      │   Use Drupal::entityTypeManager() instead in most cases. If  │
+│         │      │ the needed   method is not on                                │
+│         │      │ \Drupal\Core\Entity\EntityTypeManagerInterface, see the      │
+│         │      │ deprecated \Drupal\Core\Entity\EntityManager to find the     │
+│         │      │ correct interface or service.                                │
+│         │      │                                                              │
+│ Fix now │ 110  │ Call to deprecated method entityManager() of class Drupal.   │
+│         │      │ Deprecated in drupal:8.0.0 and is removed from drupal:9.0.0. │
+│         │      │   Use Drupal::entityTypeManager() instead in most cases. If  │
+│         │      │ the needed   method is not on                                │
+│         │      │ \Drupal\Core\Entity\EntityTypeManagerInterface, see the      │
+│         │      │ deprecated \Drupal\Core\Entity\EntityManager to find the     │
+│         │      │ correct interface or service.                                │
+│         │      │                                                              │
+│ Fix now │ 119  │ Call to deprecated function drupal_set_message(). Deprecated │
+│         │      │ in drupal:8.5.0 and is removed from drupal:9.0.0.   Use      │
+│         │      │ Drupal\Core\Messenger\MessengerInterface::addMessage()       │
+│         │      │ instead.                                                     │
+│         │      │                                                              │
+│ Fix now │ 122  │ Call to deprecated function drupal_set_message(). Deprecated │
+│         │      │ in drupal:8.5.0 and is removed from drupal:9.0.0.   Use      │
+│         │      │ Drupal\Core\Messenger\MessengerInterface::addMessage()       │
+│         │      │ instead.                                                     │
+│         │      │                                                              │
+│ Fix now │ 161  │ Call to deprecated function db_select(). Deprecated in       │
+│         │      │ drupal:8.0.0 and is removed from drupal:9.0.0. Instead, get  │
+│         │      │  a database connection injected into your service from the   │
+│         │      │ container and   call select() on it. For example,            │
+│         │      │ $injected_database->select($table, $alias, $options);        │
+│         │      │                                                              │
+│ Fix now │ 184  │ Call to deprecated function db_select(). Deprecated in       │
+│         │      │ drupal:8.0.0 and is removed from drupal:9.0.0. Instead, get  │
+│         │      │  a database connection injected into your service from the   │
+│         │      │ container and   call select() on it. For example,            │
+│         │      │ $injected_database->select($table, $alias, $options);        │
+│         │      │                                                              │
+│ Fix now │ 200  │ Call to deprecated function db_select(). Deprecated in       │
+│         │      │ drupal:8.0.0 and is removed from drupal:9.0.0. Instead, get  │
+│         │      │  a database connection injected into your service from the   │
+│         │      │ container and   call select() on it. For example,            │
+│         │      │ $injected_database->select($table, $alias, $options);        │
+│         │      │                                                              │
+└─────────┴──────┴──────────────────────────────────────────────────────────────┘
+
+web/modules/contrib/fbl/fbl.info.yml:
+┌──────────┬──────┬──────────────────────────────────────────────────────────────┐
+│  STATUS  │ LINE │                           MESSAGE                            │
+├──────────┼──────┼──────────────────────────────────────────────────────────────┤
+│ Check    │ 0    │ Add core_version_requirement: ^8 || ^9 to designate that the │
+│ manually │      │ module is compatible with Drupal 9. See                      │
+│          │      │ https://drupal.org/node/3070687.                             │
+│          │      │                                                              │
+└──────────┴──────┴──────────────────────────────────────────────────────────────┘
+
+
+

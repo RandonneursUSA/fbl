@@ -1,0 +1,5 @@
+name: 'Field Based Login'
+description: 'Allows users login with different fields.'
+core_version_requirement: ^8 || ^9 || ^10
+type: module
+configure: fbl.configuration
