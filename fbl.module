@@ -4,7 +4,8 @@
  * @file
  * Module file for the field based login module.
  */
-
+use Drupal\Core\Hook\Attribute\LegacyHook;
+use Drupal\fbl\Hook\FblHooks;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Url;
@@ -13,47 +14,18 @@ use Drupal\Component\Utility\Html;
 /**
  * Implements hook_help().
  */
+#[LegacyHook]
 function fbl_help($route_name, RouteMatchInterface $route_match) {
-  // Main module help for the content_type_dependency module.
-  if ($route_name == 'help.page.fbl') {
-    $output = '<h3>' . t('About') . '</h3>';
-    $output .= '<p>' . t('Field Based login') . '</p>';
-    $output .= '<p>' . t('This module extends drupal core user login feature, using this module admin is allows to configure user account field as loggable. like mobile number or serial number field & users can login with the same mobile number or serial number field. for more info visit <a href=":link">here</a>..', [':link' => 'https://www.drupal.org/project/fbl']) . '</p>';
-    $output .= '<h3>' . t('Uses') . '</h3>';
-    $output .= '<dl>';
-    $output .= '<dt>' . t('Assigning user field to user login') . '</dt>';
-    return $output;
-  }
+  return \Drupal::service(FblHooks::class)->help($route_name, $route_match);
 }
 
 /**
  * Implements hook_form_alter().
  */
-function fbl_form_alter(&$form, FormStateInterface $form_state, $form_id) {
-  // Alter user login form.
-  if ($form_id == 'user_login_form') {
-    // Load fbl configurations.
-    $fbl_config = \Drupal::config('fbl.settings');
-    $fbl_value = $fbl_config->get('field_based_login');
-
-    // Add validation.
-    array_unshift($form['#validate'], 'fbl_login_name_validate');
-
-    // Alter name title.
-    if (!empty($fbl_value['label'])) {
-      $form['name']['#title'] = Html::escape($fbl_value['label']);
-    }
-
-    // Alter name field description.
-    if (!empty($fbl_value['field_desc'])) {
-      $form['name']['#description'] = Html::escape($fbl_value['field_desc']);
-    }
-  }
-
-  // Set fbl validator on top of other register validators.
-  if ($form_id == 'user_form' || $form_id == 'user_register_form') {
-    $form['#validate'][] = 'fbl_user_register_validate';
-  }
+#[LegacyHook]
+function fbl_form_alter(&$form, FormStateInterface $form_state, $form_id)
+{
+    \Drupal::service(FblHooks::class)->formAlter($form, $form_state, $form_id);
 }
 
 /**
@@ -76,7 +48,7 @@ function fbl_user_register_validate($form, FormStateInterface &$form_state) {
       // If on user form, let's load this user and exclude from lookup.
       if ($form_state->getValue('form_id') && $form_state->getValue('form_id') == 'user_form') {
         /** @var \Drupal\user\Entity\User $user */
-        if ($user = user_load_by_name($form_state->getValue('name'))) {
+        if ($user = array_values(\Drupal::entityTypeManager()->getStorage('user')->loadByProperties(['name' => $form_state->getValue('name')]))[0] ?? FALSE) {
           // Exclude current user.
           $query->condition('uid', $user->id(), '!=');
         }
@@ -142,14 +114,14 @@ function fbl_login_name_validate($form, FormStateInterface &$form_state) {
     }
 
     // Load user object by username.
-    $user_load_by_name = user_load_by_name($login_input);
+    $user_load_by_name = array_values(\Drupal::entityTypeManager()->getStorage('user')->loadByProperties(['name' => $login_input]))[0] ?? FALSE;
     if ($user_load_by_name && $allow_user_login_by_name) {
       $user_not_found = FALSE;
     }
 
     // Load user object by its email.
     /** @var \Drupal\user\Entity\User $user_load_by_mail */
-    $user_load_by_mail = user_load_by_mail($login_input);
+    $user_load_by_mail = array_values(\Drupal::entityTypeManager()->getStorage('user')->loadByProperties(['mail' => $login_input]))[0] ?? FALSE;
     if ($user_load_by_mail && $allow_user_login_by_email) {
       $user_not_found = FALSE;
       // Use display name by default.

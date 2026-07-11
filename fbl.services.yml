@@ -1,0 +1,5 @@
+
+services:
+  Drupal\fbl\Hook\FblHooks:
+    class: Drupal\fbl\Hook\FblHooks
+    autowire: true
